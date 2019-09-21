@@ -189,6 +189,19 @@ endif " exists(...)
 
 colorscheme elflord
 
+"hilight function name
+set t_Co=256
+"注释灰色243
+hi comment ctermfg=243
+"搜索黄色3
+hi Search term=standout ctermfg=0 ctermbg=3
+autocmd BufNewFile,BufRead * :syntax match cfunctions "\<[a-zA-Z_][a-zA-Z_0-9]*\>[^()]*)("me=e-2
+autocmd BufNewFile,BufRead * :syntax match cfunctions "\<[a-zA-Z_][a-zA-Z_0-9]*\>\s*("me=e-1
+"函数蓝色80
+hi cFunctions guifg=#7fd02e cterm=bold ctermfg=80
+syn match cClass "\<[a-zA-Z_][a-zA-Z_0-9]*\>::"me=e-2
+hi cClass guifg=#7fd02e cterm=bold ctermfg=yellow
+
 "Some nice mapping to switch syntax (useful if one mixes different languages in one file)
 map <leader>1 :set syntax=c<cr>
 map <leader>2 :set syntax=xhtml<cr>
