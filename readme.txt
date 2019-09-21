@@ -3,7 +3,7 @@
 
 进入项目根目录，执行：
 ctags -R `pwd`
-find `pwd` -name "*.h" -o -name "*.cpp" > cscope.files
+find `pwd` -name "*.c" -o -name "*.h" -o -name "*.cpp" > cscope.files
 cscope -bR -i cscope.files
 以上命令也可以通过直接执行.vim/buildenv.sh脚本执行
 此配置安装了插件并设置了自动递归查找索引文件，会自动加载cscope.out 和 tags
