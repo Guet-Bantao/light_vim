@@ -188,19 +188,28 @@ if !exists("g:vimrc_loaded")
 endif " exists(...)
 
 colorscheme elflord
+"colorscheme monokai
+set t_Co=256
 
 "hilight function name
-set t_Co=256
-"注释灰色243
-hi comment ctermfg=243
-"搜索黄色3
-hi Search term=standout ctermfg=0 ctermbg=3
 autocmd BufNewFile,BufRead * :syntax match cfunctions "\<[a-zA-Z_][a-zA-Z_0-9]*\>[^()]*)("me=e-2
 autocmd BufNewFile,BufRead * :syntax match cfunctions "\<[a-zA-Z_][a-zA-Z_0-9]*\>\s*("me=e-1
-"函数蓝色80
-hi cFunctions guifg=#7fd02e cterm=bold ctermfg=80
+hi cFunctions guifg=#7fd02e cterm=bold ctermfg=80 "函数蓝色80
+
 syn match cClass "\<[a-zA-Z_][a-zA-Z_0-9]*\>::"me=e-2
 hi cClass guifg=#7fd02e cterm=bold ctermfg=yellow
+
+hi Search term=standout ctermfg=0 ctermbg=3 "搜索黄色3
+hi CursorLine ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE "光标行
+"hi CursorColumn ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE
+"hi ColorColumn ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE
+hi LineNr ctermfg=102 ctermbg=237 cterm=NONE guifg=#90908a guibg=#3c3d37 gui=NONE "行号
+hi VertSplit ctermfg=241 ctermbg=241 cterm=NONE guifg=#64645e guibg=#64645e gui=NONE "分隔线
+hi MatchParen ctermfg=197 ctermbg=NONE cterm=underline guifg=#f92672 guibg=NONE gui=underline
+hi Comment ctermfg=242 ctermbg=NONE cterm=NONE guifg=#75715e guibg=NONE gui=NONE "注释
+hi Conditional ctermfg=197 ctermbg=NONE cterm=NONE guifg=#f92672 guibg=NONE gui=NONE "条件
+hi StatusLine ctermfg=231 ctermbg=241 cterm=bold guifg=#f8f8f2 guibg=#64645e gui=bold
+hi StatusLineNC ctermfg=231 ctermbg=241 cterm=NONE guifg=#f8f8f2 guibg=#64645e gui=NONE
 
 "Some nice mapping to switch syntax (useful if one mixes different languages in one file)
 map <leader>1 :set syntax=c<cr>
