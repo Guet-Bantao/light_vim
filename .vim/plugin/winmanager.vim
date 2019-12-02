@@ -1316,3 +1316,16 @@ endfunction
 let &cpo = s:cpo_save
 unlet s:cpo_save
 " vim:ts=4:noet:sw=4
+
+"set auto open Winmanager
+if g:AutoOpenWinManager
+"2wincmd w  mean is enter 2 num of w key
+	autocmd VimEnter * nested call s:StartWindowsManager()|2wincmd w | pwd |
+	      \ if (winnr("$") == 3) | 1wincmd w | pwd | endif |
+	      \ if (winnr("$") == 4) |
+	      \ autocmd QuitPre * if (winnr("$") == 4)  | wqa | endif |
+	      \ endif
+	autocmd QuitPre * if (winnr("$") == 3)  | wqa | endif
+	autocmd QuitPre * if (winnr("$") == 2)  | q | endif
+	"autocmd bufenter * if (winnr("$") == 3)  | pwd | endif
+endif
