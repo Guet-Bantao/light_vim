@@ -1317,15 +1317,32 @@ let &cpo = s:cpo_save
 unlet s:cpo_save
 " vim:ts=4:noet:sw=4
 
+if g:persistentBehaviour
+function! <SID>AutoCloseWindowsManager_Set()
+	2wincmd w
+	autocmd bufenter * if (winnr("$") == 2 && IsWinManagerVisible()) |q|q| endif
+
+	if (winnr("$") == 3)
+		1wincmd w
+	endif
+	if (winnr("$") == 4)
+	      autocmd bufenter * if (winnr("$") == 3 && IsWinManagerVisible() &&
+	      \ (bufwinnr(g:TagList_title) != -1) && !s:IsOnlyVertical() )
+	      \ | q|q|q | endif
+	endif
+endfunction
+endif
+
 "set auto open Winmanager
 if g:AutoOpenWinManager
 "2wincmd w  mean is enter 2 num of w key
-	autocmd VimEnter * nested call s:StartWindowsManager()|2wincmd w | pwd |
-	      \ if (winnr("$") == 3) | 1wincmd w | pwd | endif |
+	autocmd VimEnter * call s:StartWindowsManager() | 2wincmd w |
+	      \ if (winnr("$") == 3) | 1wincmd w | endif |
 	      \ if (winnr("$") == 4) |
-	      \ autocmd QuitPre * if (winnr("$") == 4)  | wqa | endif |
-	      \ endif
-	autocmd QuitPre * if (winnr("$") == 3)  | wqa | endif
-	autocmd QuitPre * if (winnr("$") == 2)  | q | endif
-	"autocmd bufenter * if (winnr("$") == 3)  | pwd | endif
+	      \ autocmd bufenter * if (winnr("$") == 3 && IsWinManagerVisible() &&
+	      \ (bufwinnr(g:TagList_title) != -1) && !s:IsOnlyVertical() )
+	      \ | q|q|q | endif |
+	      "autocmd bufenter * if (winnr("$") == 3 && IsWinManagerVisible()) | q | endif
+	      autocmd bufenter * if (winnr("$") == 2 && IsWinManagerVisible()) |q|q| endif
 endif
+
