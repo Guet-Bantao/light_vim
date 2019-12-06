@@ -193,6 +193,11 @@ function! s:def(fn) abort
   return printf('%%#%s#%%{%s()}%%*', a:fn, a:fn)
 endfunction
 
+function! CurDir() abort
+  let curdir = substitute(getcwd(), '/home/', "~/", "g")
+  return curdir
+endfunction
+
 " https://github.com/liuchengxu/eleline.vim/wiki
 function! s:StatusLine() abort
   let l:bufnr_winnr = s:def('ElelineBufnrWinnr')
@@ -205,6 +210,7 @@ function! s:StatusLine() abort
   let l:tags = '%{exists("b:gutentags_files") ? gutentags#statusline() : ""} '
   let l:lcn = '%{ElelineLCN()}'
   let l:coc = '%{ElelineCoc()}'
+  let l:dir = '%{CurDir()}'
   let l:vista = '%#ElelineVista#%{ElelineVista()}%*'
   let l:prefix = l:bufnr_winnr.l:paste
   let l:common = l:curfname.l:branch.l:status.l:error.l:warning.l:tags.l:lcn.l:coc.l:vista
@@ -220,7 +226,7 @@ function! s:StatusLine() abort
   let l:pct = '%#Eleline9# %P %*'
   " return l:prefix.l:tot.'%<'.l:fsize.l:common
 	" \ .'%='.l:m_r_f.l:pos.l:enc.l:ff.l:pct
-  return l:prefix.l:common.'|'.$PWD
+  return l:prefix.l:common.'| '.l:dir
 	\ .'%='.l:m_r_f.l:pos.l:enc.l:pct
 endfunction
 
