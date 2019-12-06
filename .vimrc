@@ -319,7 +319,8 @@ function! CurDir()
 endfunction
 "Format the statusline
 "set statusline=\ %F%m%r%h\ %w\ \ PWD:\ %r%{CurDir()}%h\ \ \ Line:\ %l/%L:%c\ %p
-set statusline=[%n]\ %f%m%r%h\ \|\ \ pwd:\ %{CurDir()}\ \ %=Line:\ %l,%c\ %p%%\ %{((&fenc==\"\")?\"\":\"\ \|\ \".&fenc)}\
+"set statusline=[%n]\ %f%m%r%h\ \|\ \ pwd:\ %{CurDir()}\ \ %=Line:\ %l,%c\ %p%%\ %{((&fenc==\"\")?\"\":\"\ \|\ \".&fenc)}\
+"default use plugin ele_statusline.vim
 
 "Smart way to move btw. windows
 nmap <C-j> <C-W>j
@@ -528,14 +529,14 @@ nmap <silent> <F7> :Tlist<cr>
 " winmanager setting
 """"""""""""""""""""""""""""""
 "let g:winManagerWindowLayout='FileExplorer'
-let g:winManagerWidth = 25
+let g:winManagerWidth = 23
 "let g:winManagerWindowLayout = "BufExplorer,FileExplorer|TagList"
 let g:winManagerWindowLayout = "BufExplorer|FileExplorer"
 let g:defaultExplorer = 1
-let g:persistentBehaviour=0  "winmanager的窗口是最后一个窗口时，退出VIM
+let g:persistentBehaviour=1  "winmanager的窗口是最后一个窗口时，退出VIM
 nmap <C-W><C-F> :FirstExplorerWindow<cr>
 nmap <C-W><C-B> :BottomExplorerWindow<cr>
-let g:AutoOpenWinManager = 0
+let g:AutoOpenWinManager = 1
 nmap <silent> <leader>wm :WMToggle<cr>
 autocmd BufWinEnter \[Buf\ List\] setl nonumber
 nmap <silent> <F8> :WMToggle<cr>
