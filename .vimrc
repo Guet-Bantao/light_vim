@@ -45,8 +45,8 @@ set autoread
 set clipboard+=unnamed " 共享外部剪贴板
 
 "Have the mouse enabled all the time:
-set mouse=v
-set mouse=a
+set mouse+=v
+set mouse+=a
 
 "Set mapleader
 let mapleader="\<Space>"
@@ -171,6 +171,7 @@ endif
 "  set gfn=Monospace\ 11
 "endif
 
+let g:vimrc_loaded = 1
 " Avoid clearing hilight definition in plugins
 if !exists("g:vimrc_loaded")
     "Enable syntax hl
@@ -212,7 +213,8 @@ hi StatusLine ctermfg=231 ctermbg=241 cterm=bold guifg=#f8f8f2 guibg=#64645e gui
 hi StatusLineNC ctermfg=231 ctermbg=241 cterm=NONE guifg=#f8f8f2 guibg=#64645e gui=NONE
 
 if &diff
-  colorscheme desert
+  syntax off 
+  "colorscheme desert
 endif
 "Some nice mapping to switch syntax (useful if one mixes different languages in one file)
 map <leader>1 :set syntax=c<cr>
@@ -603,8 +605,8 @@ nmap <silent> <leader>lw :LUWalk<cr>
 """"""""""""""""""""""""""""""
 " vimgdb setting
 """"""""""""""""""""""""""""""
-let g:vimgdb_debug_file = ""
-run macros/gdb_mappings.vim
+"let g:vimgdb_debug_file = ""
+"run macros/gdb_mappings.vim
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Filetype generic
@@ -739,9 +741,10 @@ set autochdir
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Mark as loaded
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:vimrc_loaded = 1
 map <C-F12> :!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<CR><CR>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 "set list
+
+nmap <TAB> :bp<cr>
