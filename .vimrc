@@ -557,51 +557,6 @@ set grepprg=grep\ -nH\ $*
 let g:Tex_DefaultTargetFormat="pdf"
 let g:Tex_ViewRule_pdf='xpdf'
 
-
-""""""""""""""""""""""""""""""
-" lookupfile setting
-""""""""""""""""""""""""""""""
-let g:LookupFile_MinPatLength = 2
-let g:LookupFile_PreserveLastPattern = 0
-let g:LookupFile_PreservePatternHistory = 1
-let g:LookupFile_AlwaysAcceptFirst = 1
-let g:LookupFile_AllowNewFiles = 0
-let g:LookupFile_UsingSpecializedTags = 1
-let g:LookupFile_Bufs_LikeBufCmd = 0
-let g:LookupFile_ignorecase = 1
-let g:LookupFile_smartcase = 1
-if filereadable("./filename.tags")
-    let g:LookupFile_TagExpr = '$PWD . "/filename.tags"'
-else
-    let g:name_file=findfile("filename.tags", ".;")
-    let g:LookupFile_TagExpr='g:name_file'
-endif
-
-nmap <silent> <leader>lk :LUTags<cr>
-nmap <silent> <leader>ll :LUBufs<cr>
-nmap <silent> <leader>lw :LUWalk<cr>
-
-   " lookup file with ignore case
-   function! LookupFile_IgnoreCaseFunc(pattern)
-       let _tags = &tags
-       try
-           let &tags = eval(g:LookupFile_TagExpr)
-           let newpattern = '\c' . a:pattern
-           let tags = taglist(newpattern)
-       catch
-           echohl ErrorMsg | echo "Exception: " . v:exception | echohl NONE
-           return ""
-       finally
-           let &tags = _tags
-       endtry
-
-       " Show the matches for what is typed so far.
-       let files = map(tags, 'v:val["filename"]')
-       return files
-   endfunction
-   let g:LookupFile_LookupFunc = 'LookupFile_IgnoreCaseFunc'
-
-
 """"""""""""""""""""""""""""""
 " vimgdb setting
 """"""""""""""""""""""""""""""
