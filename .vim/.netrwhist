@@ -1,8 +1,0 @@
-let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =6
-let g:netrw_dirhist_1='/home/bantao/longan/documentation/source/AW1816/document/03 接口/i2c接口使用说明书'
-let g:netrw_dirhist_2='/home/bantao/longan'
-let g:netrw_dirhist_3='/home/bantao/longan/documentation/source/AW1816/document/02 模块/PWM模块使用说明书'
-let g:netrw_dirhist_4='/home/bantao'
-let g:netrw_dirhist_5='/home/bantao/h6/test/SATA/linux/dailybuild/source/dma'
-let g:netrw_dirhist_6='/home/bantao/longan/device/config/chips/t507/configs/ver_v1_0'

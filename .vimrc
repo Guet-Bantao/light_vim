@@ -3,9 +3,9 @@
 " You can find the latest version on:
 "       http://blog.csdn.net/easwy
 "
-" Maintainer:
-" Version: 1.0
-" Last Change: 18/07/19 09:17:57
+" Maintainer:Bantao
+" Version: 3.0
+" Last Change: 15/08/20 09:17:57
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set encoding=utf-8
 set langmenu=zh_CN.UTF-8
@@ -172,6 +172,7 @@ endif
 "endif
 
 let g:vimrc_loaded = 1
+
 " Avoid clearing hilight definition in plugins
 if !exists("g:vimrc_loaded")
     "Enable syntax hl
@@ -189,7 +190,7 @@ if !exists("g:vimrc_loaded")
 endif " exists(...)
 
 colorscheme elflord
-"colorscheme monokai
+" colorscheme monokai
 set t_Co=256
 
 "hilight function name
@@ -202,18 +203,16 @@ hi cClass guifg=#7fd02e cterm=bold ctermfg=yellow
 
 hi Search term=standout ctermfg=0 ctermbg=3 "搜索黄色3
 hi CursorLine ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE "光标行
-"hi CursorColumn ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE
 "hi ColorColumn ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE
 hi LineNr ctermfg=102 ctermbg=237 cterm=NONE guifg=#90908a guibg=#3c3d37 gui=NONE "行号
 hi VertSplit ctermfg=241 ctermbg=241 cterm=NONE guifg=#64645e guibg=#64645e gui=NONE "分隔线
-hi MatchParen ctermfg=197 ctermbg=NONE cterm=underline guifg=#f92672 guibg=NONE gui=underline
 hi Comment ctermfg=242 ctermbg=NONE cterm=NONE guifg=#75715e guibg=NONE gui=NONE "注释
 hi Conditional ctermfg=197 ctermbg=NONE cterm=NONE guifg=#f92672 guibg=NONE gui=NONE "条件
 hi StatusLine ctermfg=231 ctermbg=241 cterm=bold guifg=#f8f8f2 guibg=#64645e gui=bold
 hi StatusLineNC ctermfg=231 ctermbg=241 cterm=NONE guifg=#f8f8f2 guibg=#64645e gui=NONE
 
 if &diff
-  syntax off 
+  syntax off
   "colorscheme desert
 endif
 "Some nice mapping to switch syntax (useful if one mixes different languages in one file)
@@ -312,6 +311,8 @@ set wrap
 """"""""""""""""""""""""""""""
 " Statusline
 """"""""""""""""""""""""""""""
+" let g:airline#extensions#branch#enabled = 1
+" let g:airline#extensions#tabline#enabled = 1
 "Always hide the statusline
 set laststatus=2
 
@@ -322,7 +323,6 @@ endfunction
 "Format the statusline
 "set statusline=\ %F%m%r%h\ %w\ \ PWD:\ %r%{CurDir()}%h\ \ \ Line:\ %l/%L:%c\ %p
 "set statusline=[%n]\ %f%m%r%h\ \|\ \ pwd:\ %{CurDir()}\ \ %=Line:\ %l,%c\ %p%%\ %{((&fenc==\"\")?\"\":\"\ \|\ \".&fenc)}\
-"default use plugin ele_statusline.vim
 
 "Smart way to move btw. windows
 nmap <C-j> <C-W>j

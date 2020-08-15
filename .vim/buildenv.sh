@@ -4,3 +4,4 @@
 ctags -R `pwd`
 find `pwd` -name "*.c" -o -name "*.h" -o -name "*.cpp" > cscope.files
 cscope -bR -i cscope.files
+rm cscope.files
