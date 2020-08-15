@@ -271,7 +271,7 @@ function! <SID>StartWindowsManager()
 		let cen = 1
 		" for now assume that the explorer windows always stay on the left.
 		" TODO: make this optional later
-		"wincmd H		"bantao delete in 20190718
+		"wincmd H		"delete on 20190718
 		wincmd L
 		" set up the correct width
 		exe g:winManagerWidth.'wincmd |'
@@ -384,6 +384,7 @@ function! <SID>StartWindowsManager()
 	if nothingShown
 		echomsg "[ no valid explorers available. winmanager will start when next possible ]"
 	end
+
 endfunction
 
 "---
@@ -1064,6 +1065,9 @@ function! <SID>ToggleWindowsManager()
 	else
 		call s:StartWindowsManager()
 		"exe 'q'
+		if g:persistentBehaviour
+		  call s:AutoCloseWindowsManager_Set() "add on 2019.12.3
+		endif
 	end
 endfunction
 
@@ -1336,8 +1340,8 @@ endif
 "set auto open Winmanager
 if g:AutoOpenWinManager
 "2wincmd w  mean is enter 2 num of w key
-	autocmd VimEnter * call s:StartWindowsManager() | 2wincmd w |
-	      \ if (winnr("$") == 3) | 1wincmd w | endif |
+	autocmd VimEnter * call s:StartWindowsManager() | 2wincmd w | call airline#update_statusline() |
+	      \ if (winnr("$") == 3) | 1wincmd w | call airline#update_statusline() | endif |
 	      \ if (winnr("$") == 4) |
 	      \ autocmd bufenter * if (winnr("$") == 3 && IsWinManagerVisible() &&
 	      \ (bufwinnr(g:TagList_title) != -1) && !s:IsOnlyVertical() )
