@@ -551,6 +551,17 @@ nmap <silent> <leader>fe :Sexplore!<cr>
 nmap <silent> <F2> :Sexplore!<cr>
 
 """"""""""""""""""""""""""""""
+" ctrlp setting
+""""""""""""""""""""""""""""""
+let g:ctrlp_max_depth = 100000
+let g:ctrlp_max_files = 100000
+" let g:ctrlp_root_markers = {'.root'}"
+set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.o,*ko     " MacOSX/Linux
+let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
+" let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
+
+
+""""""""""""""""""""""""""""""
 " LaTeX Suite things
 """"""""""""""""""""""""""""""
 set grepprg=grep\ -nH\ $*
