@@ -18,6 +18,14 @@ set fileencodings=ucs-bom,utf-8,gb18030,cp936,big5,euc-jp,euc-kr,latin1
 "Get out of VI's compatible mode..
 set nocompatible
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-plugged
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+call plug#begin('~/.vim/plugged')
+Plug 'vim-scripts/LeaderF-master' "LeaderF模糊查找插件
+call plug#end()
+
+
 " Platform
 function! MySys()
    return "linux"
@@ -559,6 +567,19 @@ let g:ctrlp_max_files = 100000
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.o,*ko     " MacOSX/Linux
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
 " let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
+
+""""""""""""""""""""""""""""""
+" LeaderF
+""""""""""""""""""""""""""""""
+let g:Lf_RootMarkers = ['.project', '.root', '.svn', '.git']
+let g:Lf_WorkingDirectoryMode = 'Ac'
+let g:Lf_WindowHeight = 0.30
+let g:Lf_ShowRelativePath = 1 " Whether to show the relative path
+let g:Lf_StlColorscheme = 'powerline'
+" let g:Lf_PreviewResult = {'Function':0, 'BufTag':0}
+let g:Lf_ReverseOrder = 1
+" noremap <c-m> :LeaderfMru<cr>
+
 
 """"""""""""""""""""""""""""""
 " rainbow setting
