@@ -23,6 +23,7 @@ set nocompatible
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 call plug#begin('~/.vim/plugged')
 Plug 'vim-scripts/LeaderF-master' "LeaderF模糊查找插件
+Plug 'mhinz/vim-startify'
 call plug#end()
 
 
@@ -762,3 +763,20 @@ map <C-F12> :!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<CR><CR>
 "set list
 
 nmap <TAB> :bp<cr>
+
+""""""""""""""""""""""""""""""
+" startify
+""""""""""""""""""""""""""""""
+let g:startify_custom_header = [
+           \ '+-------------------------------------+',
+           \ '|   __________________________        |',
+           \ '|  |  VIM No.1 in the world ! |       |',
+           \ '|  |__________________________|       |',
+           \ '|     o                               |',
+           \ '|      o    ^____^                    |',
+           \ '|       o  （o o）\___________        |',
+           \ '|          （___）\           ）\/\   |',
+           \ '|                 ||________w |       |',
+           \ '|                 ||         ||       |',
+           \ '+-------------------------------------+',
+           \]
