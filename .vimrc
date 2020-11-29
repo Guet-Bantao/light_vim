@@ -24,6 +24,7 @@ set nocompatible
 call plug#begin('~/.vim/plugged')
 Plug 'vim-scripts/LeaderF-master' "LeaderF模糊查找插件
 Plug 'mhinz/vim-startify'
+Plug 'junegunn/vim-easy-align'
 call plug#end()
 
 
