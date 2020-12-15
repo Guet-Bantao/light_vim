@@ -328,13 +328,16 @@ map <C-F12> :!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<CR><CR>
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " gtag setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" if executable('gtags-cscope') && executable('gtags')
-" set cscopetag " 使用 cscope 作为 tags 命令
-" set cscopeprg='gtags-cscope' " 使用 gtags-cscope 代替 cscope
-" " let GtagsCscope_Auto_Load = 1
-" let CtagsCscope_Auto_Map = 1
-" let GtagsCscope_Quiet = 1
-" endif
+if executable('gtags-cscope') && executable('gtags')
+    let gtags_file=findfile("GTAGS", ";")
+    if !empty(gtags_file)
+        set cscopetag " 使用 cscope 作为 tags 命令
+	set cscopeprg='gtags-cscope' " 使用 gtags-cscope 代替 cscope
+	let GtagsCscope_Auto_Load = 1
+	let CtagsCscope_Auto_Map = 1
+	let GtagsCscope_Quiet = 1
+    endif
+endif
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -591,31 +594,3 @@ nmap <TAB> :bn<cr>
 
 autocmd BufEnter * :syntax sync fromstart
 
-" function! FindGtags(f)
-" 	let dir = fnamemodify(a:f, ':p:h')
-" 	while 1
-" 		let tmp = dir . '/GTAGS'
-" 		if filereadable(tmp)
-" 			echo "abcd"
-" 			break
-" 		elseif
-" 			dir == '/'
-" 			break
-" 		endif
-
-" 		let dir = fnamemodify(dir, ":h")
-" 	endwhile
-" endfunc
-
-
-if executable('gtags-cscope') && executable('gtags')
-" call FindGtags(expand('<afile>'))
-" if filereadable("GTAGS")
-" 	echo abdc
-" set cscopetag " 使用 cscope 作为 tags 命令
-" set cscopeprg='gtags-cscope' " 使用 gtags-cscope 代替 cscope
-let GtagsCscope_Auto_Load = 1
-let CtagsCscope_Auto_Map = 1
-let GtagsCscope_Quiet = 1
-" endif
-endif
