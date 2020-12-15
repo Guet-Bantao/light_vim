@@ -4,18 +4,26 @@
 | airline.vim  | 增强vim底部状态栏显示 |
 | autoload_cscope.vim   | 自动加载cscope |
 | bufexplorer.vim  | 可以打开历史文件列表 |
-| comment.vim  | 快速注释代码 |
+| vim-commentary  | 快速注释代码 |
 | ctrlp.vim  | 兼容性很好的模糊搜索插件 |
-| rainbow_main.vim  | 彩虹插件，给括号配彩虹色 |
+| LeaderF  | 速度很快的异步模糊搜索插件 |
+| rainbow  | 彩虹插件，给括号配彩虹色 |
+| vim-startify  | 优化vim界面 |
+| vim-code-dark  | 主题配色 |
+| global-6.6.4 | Gtags使用 |
 | taglist.vim  | 显示出tags列表 |
 | winmanager.vim | 多窗口管理 |
 
 # light_vim [![Build Status](https://travis-ci.org/vim-airline/vim-airline.svg?branch=master)](https://travis-ci.org/vim-airline/vim-airline) [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/cb%40256bit.org) [![reviewdog](https://github.com/vim-airline/vim-airline/workflows/reviewdog/badge.svg?branch=master&event=push)](https://github.com/vim-airline/vim-airline/actions?query=workflow%3Areviewdog+event%3Apush+branch%3Amaster)
 
 
+
+LeaderF 和 ctrlp 互斥使用，低版本vim使用ctrlp，高版本（vim7.4.330以上）以及有python的vim使用LeaderF
+
+
 进入项目根目录，执行：  
 ctags -R `pwd`  
-find `pwd` -name "*.c"  -o -name "*.c" -o -name "*.cpp" > cscope.files  
+find `pwd` -name "*.c"  -o -name "*.c" -o -name "*.cpp" -o -name "*.java" > cscope.files  
 cscope -bR -i cscope.files
 
 以上命令也可以通过直接执行source ~/.vim/buildenv.sh脚本执行
@@ -24,9 +32,7 @@ cscope -bR -i cscope.files
 
 //注：<Ctrl+v>代表Ctrl和v键一起按；<Ctrl>+v代表先按Ctrl键松开之后按v键
 
-F2：屏幕双开打开文件并浏览（同理，可在命令模式下输入:fe实现）  
-F3：快速粘贴（本设置支持<Ctrl+v>粘贴）  
-F4：查看文件修改内容（同理，可在命令模式下输入changes实现）  
+F2：屏幕双开打开文件并浏览（同理，可在命令模式下输入:fe实现）    
 F7：打开\关闭左侧Taglist窗口  
 F8：打开\关闭右侧winmanage窗口  
 F9：打开BufExplorer，历史文件列表
@@ -38,7 +44,7 @@ F9：打开BufExplorer，历史文件列表
 <Ctrl+a>：实现全选并复制功能  
 <Ctrl+v>：实现快速粘贴
 
-<空格>+f：快速搜索当前文件里出现某个单词的位置并小窗口预览（v键可选择单词）  
+<空格>+g：快速搜索当前文件里出现某个单词的位置并小窗口预览（v键可选择单词）  
 <空格>+ww：保存  
 <空格>+wq：保存退出  
 <空格>+wf：强制保存  
@@ -80,17 +86,18 @@ Run :CtrlPMixed to search in Files, Buffers and MRU files at the same time.
 * <Ctrl-y> 文件不存在时创建文件及目录
 * <Ctrl-z> 标记/取消标记， 标记多个文件后可以使用 <c-o> 同时打开多个文件
 
+<空格>+f：打开Leadf插件（如果开启了Leadf），通过名字模糊查找文件。（等同于输入:LeadfFile） 
+<Ctrl+p>：打开Leadf插件（如果开启了Leadf），通过名字模糊查找文件。（等同于输入:LeadfFile） 
+
 INSERT输入模式下通过<Ctrl+n>，<Ctrl+p>，可以实现单词（给查单词的部分字符）的自动补全和输入提示的功能  
 NORMAL命令模式下<g>+<c>+<c>批量自动注释/反代码  
 VISUAL可视模式下<g>+<c>批量自动注释/反代码  
 
+快速比较文件，命令行下：@vd 你要比较的文件
+
 --------------------------------------------------------------------------------------
-更多细节：
-<空格>+1：C格式风格  
-<空格>+2：HTML格式风格  
-<空格>+3：Python格式风格  
-<空格>+4：Javascript格式风格  
+更多细节： 
+直接vim启动，可以快速打开常用文件 
 <空格>+Enter：Fast remove highlight search  
 <空格>+ee：Fast editing of .vimrc  
 <空格>+ss：Fast reloading of the .vimrc  
-
