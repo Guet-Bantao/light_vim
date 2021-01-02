@@ -13,6 +13,8 @@
 | global-6.6.4 | Gtags使用 |
 | taglist.vim  | 显示出tags列表 |
 | winmanager.vim | 多窗口管理 |
+| ultisnips  | 显示出tags列表 |
+| vim-snippets | 多窗口管理 |
 
 # light_vim [![Build Status](https://travis-ci.org/vim-airline/vim-airline.svg?branch=master)](https://travis-ci.org/vim-airline/vim-airline) [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/cb%40256bit.org) [![reviewdog](https://github.com/vim-airline/vim-airline/workflows/reviewdog/badge.svg?branch=master&event=push)](https://github.com/vim-airline/vim-airline/actions?query=workflow%3Areviewdog+event%3Apush+branch%3Amaster)
 
@@ -21,7 +23,7 @@
 LeaderF 和 ctrlp 互斥使用，低版本vim使用ctrlp，高版本（vim7.4.330以上）以及有python的vim使用LeaderF
 
 
-进入项目根目录，执行：  
+为项目工程建立跳转索引：进入项目根目录，执行：  
 ctags -R `pwd`  
 find `pwd` -name "*.c"  -o -name "*.c" -o -name "*.cpp" -o -name "*.java" > cscope.files  
 cscope -bR -i cscope.files
@@ -54,9 +56,16 @@ F9：打开BufExplorer，历史文件列表
 <空格>+dm：自动删除尾随^M  
 <空格>+fe：打开一个垂直分隔的窗口浏览当前文件所在的目录  
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" ctag
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 <Ctrl+]>：跳转到函数、宏、枚举等定义的位置（本设置支持<Ctrl+鼠标左键>跳转，同理，可在命令模式下输入tag 函数\变量名）  
 <CTRL+W+]>：分隔当前窗口并跳转到光标下的tag  
 <Ctrl+T>：返回上一次跳转的位置  
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" cscope
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 <Ctrl+\>+g：查找函数、宏、枚举等定义的位置，类似ctags所提供的功能（比如有可能只在头文件处）  
 <Ctrl+\>+s：查找C语言符号，即查找函数名、宏、枚举值等出现的地方（包括头文件）  
 <Ctrl+\>+t：查找指定的字符串  
@@ -69,6 +78,9 @@ F9：打开BufExplorer，历史文件列表
 更多其他功能可输入：help cscope查看
 
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" ctrlp
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Run :CtrlP or :CtrlP [starting-directory] to invoke CtrlP in find file mode.  
 Run :CtrlPBuffer or :CtrlPMRU to invoke CtrlP in find buffer or find MRU file mode.  
 Run :CtrlPMixed to search in Files, Buffers and MRU files at the same time.  
@@ -86,13 +98,31 @@ Run :CtrlPMixed to search in Files, Buffers and MRU files at the same time.
 * <Ctrl-y> 文件不存在时创建文件及目录
 * <Ctrl-z> 标记/取消标记， 标记多个文件后可以使用 <c-o> 同时打开多个文件
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" leaderf
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 <空格>+f：打开Leadf插件（如果开启了Leadf），通过名字模糊查找文件。（等同于输入:LeadfFile） 
 <Ctrl+p>：打开Leadf插件（如果开启了Leadf），通过名字模糊查找文件。（等同于输入:LeadfFile） 
+LeaderfMru：打开Leadf插件（如果开启了Leadf），通过名字模糊查找最近浏览文件。
+LeaderF是很强大的一个插件，更多使用命令参考leaderf.txt文件。
 
-INSERT输入模式下通过<Ctrl+n>，<Ctrl+p>，可以实现单词（给查单词的部分字符）的自动补全和输入提示的功能  
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" startify
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+打开vim可展开最近浏览文件，快速定位打开。
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" ultisnips and vim-snippets
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+自定义补全代码块，例如输入for然后按Tab键，会自动根据规snippets里的规则补全代码块，规则文件在.vim/plugged/vim-snippets/UltiSnips/目录下，C文件规则对应c.snippets，可自定义添加规则。
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-commentary
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 NORMAL命令模式下<g>+<c>+<c>批量自动注释/反代码  
 VISUAL可视模式下<g>+<c>批量自动注释/反代码  
 
+INSERT输入模式下通过<Ctrl+n>，<Ctrl+p>，可以实现单词（给查单词的部分字符）的自动补全和输入提示的功能  
 快速比较文件，命令行下：@vd 你要比较的文件
 
 --------------------------------------------------------------------------------------

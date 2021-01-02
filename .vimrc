@@ -50,6 +50,8 @@ Plug 'junegunn/vim-easy-align'
 Plug 'luochen1990/rainbow' "彩虹括号
 Plug 'tpope/vim-commentary' "快速注释
 Plug 'vim-scripts/global-6.6.4' "gtags引用跳转
+Plug 'SirVer/ultisnips' "替换引擎，需搭配补全规则
+Plug 'honza/vim-snippets' "补全片段规则
 Plug 'tomasiser/vim-code-dark'
 call plug#end()
 
@@ -483,6 +485,14 @@ let g:startify_custom_header = [
            \ '                        ||         ||                    |',
            \ '+--------------------------------------------------------+',
            \]
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" ultisnips setting
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:UltiSnipsExpandTrigger = "<tab>" "用<tab>展开片段代码
+let g:UltiSnipsListSnippets = "<c-tab>"
+let g:UltiSnipsJumpForwardTrigger = "<tab>" "用<tab>跳到下一个位置
+let g:UltiSnipsJumpBackwardTrigger = "<s-tab>" "用shift+<tab>跳到上一个位置
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
