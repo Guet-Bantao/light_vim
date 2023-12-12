@@ -9,7 +9,7 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set encoding=utf-8
 set langmenu=zh_CN.UTF-8
-language message zh_CN.UTF-8
+" language message zh_CN.UTF-8
 set fileencodings=ucs-bom,utf-8,gb18030,cp936,big5,euc-jp,euc-kr,latin1
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -53,6 +53,7 @@ Plug 'vim-scripts/global-6.6.4' "gtags引用跳转
 Plug 'SirVer/ultisnips' "替换引擎，需搭配补全规则
 Plug 'honza/vim-snippets' "补全片段规则
 Plug 'tomasiser/vim-code-dark'
+Plug 'rhysd/git-messenger.vim' "git msg 插件
 call plug#end()
 
 set clipboard=unnamed " 共享外部剪贴板
@@ -62,7 +63,6 @@ set clipboard=autoselect,exclude:.* "vim剪切板会拖慢2s启动时间，不�
 "Set mapleader
 let mapleader="\<Space>"
 let g:mapleader = "\<Space>"
-
 
 " Switch to buffer according to file name
 function! SwitchToBuf(filename)
@@ -438,6 +438,14 @@ let g:airline#extensions#tabline#fnamemod = ':p:t' " 只显示文件名，不显
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" gitmessenger setting
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:git_messenger_close_on_cursor_moved = "true" "窗口自动关闭
+let g:git_messenger_include_diff = "current" "none:简略 current:当前差异 all:全部差异
+let g:git_messenger_max_popup_height = 40 "窗口最大行数
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " rainbow setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:rainbow_active = 1 "0 if you want to enable it later via :RainbowToggle
@@ -540,7 +548,7 @@ set backspace=eol,start,indent
 set whichwrap+=<,>
 
 "Ignore case when searching不区分大小写
-"set ignorecase
+set ignorecase
 
 "Include search
 set incsearch
