@@ -16,6 +16,7 @@
 | ultisnips  | 代码块引擎 |
 | vim-snippets | 代码片段仓库 |
 | git-messenger | 代码提交历史信息 |
+| supertab | Tab补全代码 |
 
 # light_vim [![Build Status](https://travis-ci.org/vim-airline/vim-airline.svg?branch=master)](https://travis-ci.org/vim-airline/vim-airline) [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/cb%40256bit.org) [![reviewdog](https://github.com/vim-airline/vim-airline/workflows/reviewdog/badge.svg?branch=master&event=push)](https://github.com/vim-airline/vim-airline/actions?query=workflow%3Areviewdog+event%3Apush+branch%3Amaster)
 
