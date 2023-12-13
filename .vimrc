@@ -11,6 +11,7 @@ set encoding=utf-8
 set langmenu=zh_CN.UTF-8
 " language message zh_CN.UTF-8
 set fileencodings=ucs-bom,utf-8,gb18030,cp936,big5,euc-jp,euc-kr,latin1
+set fenc=utf-8      "编码文件
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " General
@@ -54,6 +55,7 @@ Plug 'SirVer/ultisnips' "替换引擎，需搭配补全规则
 Plug 'honza/vim-snippets' "补全片段规则
 Plug 'tomasiser/vim-code-dark'
 Plug 'rhysd/git-messenger.vim' "git msg 插件
+Plug 'ervandew/supertab' "Tab 代码补全
 call plug#end()
 
 set clipboard=unnamed " 共享外部剪贴板
@@ -501,6 +503,13 @@ let g:UltiSnipsExpandTrigger = "<tab>" "用<tab>展开片段代码
 let g:UltiSnipsListSnippets = "<c-tab>"
 let g:UltiSnipsJumpForwardTrigger = "<tab>" "用<tab>跳到下一个位置
 let g:UltiSnipsJumpBackwardTrigger = "<s-tab>" "用shift+<tab>跳到上一个位置
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" supertab setting
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" let g:loaded_supertab = 0 "放开注释，Tab补全失效
+let g:SuperTabDefaultCompletionType = "<c-n>" "候选词从上到下
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
