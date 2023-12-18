@@ -54,7 +54,11 @@ Plug 'vim-scripts/global-6.6.4' "gtags引用跳转
 Plug 'SirVer/ultisnips' "替换引擎，需搭配补全规则
 Plug 'honza/vim-snippets' "补全片段规则
 Plug 'tomasiser/vim-code-dark'
+if v:version > 800
 Plug 'rhysd/git-messenger.vim' "git msg 插件
+else
+let g:loaded_git_messenger = 0
+endif
 Plug 'ervandew/supertab' "Tab 代码补全
 call plug#end()
 
@@ -442,9 +446,9 @@ let g:airline#extensions#tabline#fnamemod = ':p:t' " 只显示文件名，不显
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " gitmessenger setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:git_messenger_close_on_cursor_moved = "true" "窗口自动关闭
+" let g:git_messenger_close_on_cursor_moved = "true" "窗口自动关闭
 let g:git_messenger_include_diff = "current" "none:简略 current:当前差异 all:全部差异
-let g:git_messenger_max_popup_height = 40 "窗口最大行数
+let g:git_messenger_max_popup_height = 30 "窗口最大行数
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
