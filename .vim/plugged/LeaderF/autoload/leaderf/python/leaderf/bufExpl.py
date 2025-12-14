@@ -52,11 +52,16 @@ class BufferExplorer(Explorer):
                 buffers = {w.buffer.number: w.buffer for w in vim.current.tabpage.windows
                            if os.path.basename(w.buffer.name) != "LeaderF"}
 
+        if lfEval("has('nvim')") == '0':
+            buffers = {number : buffer for number, buffer in buffers.items()
+                       if buffer.options["buftype"] != b"terminal"}
 
         # e.g., 12 u %a+-  aaa.txt
         bufnr_len = len(lfEval("bufnr('$')"))
         self._prefix_length = bufnr_len + 8
+        self.show_icon = False
         if lfEval("get(g:, 'Lf_ShowDevIcons', 1)") == '1':
+            self.show_icon = True
             self._prefix_length += webDevIconsStrLen()
 
         self._max_bufname_len = max([int(lfEval("strdisplaywidth('%s')"
@@ -101,7 +106,7 @@ class BufferExplorer(Explorer):
         return 'Buffer'
 
     def getStlCurDir(self):
-        return escQuote(lfEncode(os.getcwd()))
+        return escQuote(lfEncode(lfGetCwd()))
 
     def supportsNameOnly(self):
         return True
@@ -132,12 +137,22 @@ class BufExplManager(Manager):
         line = args[0]
         buf_number = int(re.sub(r"^.*?(\d+).*$", r"\1", line))
         if kwargs.get("mode", '') == 't':
-            buf_name = lfEval("bufname(%s)" % buf_number)
-            lfCmd("tab drop %s" % escSpecial(buf_name))
+            for tp, w in ((tp, window) for tp in vim.tabpages for window in tp.windows):
+                if w.buffer.number == buf_number:
+                    vim.current.tabpage = tp
+                    vim.current.window = w
+                    break
+            else:
+                buf_name = vim.buffers[buf_number].name
+                lfCmd("tabe %s" % escSpecial(buf_name))
         else:
-            if lfEval("get(g:, 'Lf_JumpToExistingWindow', 0)") == '1':
-                buf_name = lfEval("bufname(%s)" % buf_number)
-                lfCmd("hide drop %s" % escSpecial(buf_name))
+            if lfEval("get(g:, 'Lf_JumpToExistingWindow', 1)") == '1':
+                for w in vim.windows:
+                    if w.buffer.number == buf_number:
+                        vim.current.window = w
+                        break
+                else:
+                    lfCmd("hide buffer %d" % buf_number)
             else:
                 lfCmd("hide buffer %d" % buf_number)
 
@@ -172,7 +187,12 @@ class BufExplManager(Manager):
         """
         if not line:
             return 0
-        prefix_len = self._getExplorer().getPrefixLength() - webDevIconsStrLen() + webDevIconsBytesLen()
+
+        if self._getExplorer().show_icon:
+            prefix_len = self._getExplorer().getPrefixLength() - webDevIconsStrLen() + webDevIconsBytesLen()
+        else:
+            prefix_len = self._getExplorer().getPrefixLength()
+
         if mode == 0:
             return prefix_len
         elif mode == 1:
@@ -203,42 +223,42 @@ class BufExplManager(Manager):
 
         winid = None
         if self._getInstance().getWinPos() == 'popup':
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_bufNumber'', ''^\s*\zs\d\+'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_bufNumber'', ''^\s*\zs\d\+'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_bufIndicators'', ''^\s*\d\+\s*\zsu\=\s*[#%%]\=...'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_bufIndicators'', ''^\s*\d\+\s*\zsu\=\s*[#%%]\=...'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_bufModified'', ''^\s*\d\+\s*u\=\s*[#%%]\=.+\s*\zs.*$'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_bufModified'', ''^\s*\d\+\s*u\=\s*[#%%]\=.+\s*\zs.*$'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_bufNomodifiable'', ''^\s*\d\+\s*u\=\s*[#%%]\=..-\s*\zs.*$'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_bufNomodifiable'', ''^\s*\d\+\s*u\=\s*[#%%]\=..-\s*\zs.*$'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_bufDirname'', '' \zs".*"$'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_bufDirname'', '' \zs".*"$'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
             winid = self._getInstance().getPopupWinId()
         else:
-            id = int(lfEval("matchadd('Lf_hl_bufNumber', '^\s*\zs\d\+')"))
+            id = int(lfEval(r"matchadd('Lf_hl_bufNumber', '^\s*\zs\d\+')"))
             self._match_ids.append(id)
-            id = int(lfEval("matchadd('Lf_hl_bufIndicators', '^\s*\d\+\s*\zsu\=\s*[#%]\=...')"))
+            id = int(lfEval(r"matchadd('Lf_hl_bufIndicators', '^\s*\d\+\s*\zsu\=\s*[#%]\=...')"))
             self._match_ids.append(id)
-            id = int(lfEval("matchadd('Lf_hl_bufModified', '^\s*\d\+\s*u\=\s*[#%]\=.+\s*\zs.*$')"))
+            id = int(lfEval(r"matchadd('Lf_hl_bufModified', '^\s*\d\+\s*u\=\s*[#%]\=.+\s*\zs.*$')"))
             self._match_ids.append(id)
-            id = int(lfEval("matchadd('Lf_hl_bufNomodifiable', '^\s*\d\+\s*u\=\s*[#%]\=..-\s*\zs.*$')"))
+            id = int(lfEval(r"matchadd('Lf_hl_bufNomodifiable', '^\s*\d\+\s*u\=\s*[#%]\=..-\s*\zs.*$')"))
             self._match_ids.append(id)
-            id = int(lfEval('''matchadd('Lf_hl_bufDirname', ' \zs".*"$')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_bufDirname', ' \zs".*"$')'''))
             self._match_ids.append(id)
 
         # devicons
         if lfEval("get(g:, 'Lf_ShowDevIcons', 1)") == '1':
-            self._match_ids.extend(matchaddDevIconsExtension(r'__icon__\ze\s\+\S\+\.__name__\($\|\s\)', winid))
+            self._match_ids.extend(matchaddDevIconsExtension(r'__icon__\ze\s\+.\{-}\.__name__\($\|\s\)', winid))
             self._match_ids.extend(matchaddDevIconsExact(r'__icon__\ze\s\+__name__\($\|\s\)', winid))
             self._match_ids.extend(matchaddDevIconsDefault(r'__icon__\ze\s\+\S\+\($\|\s\)', winid))
 
@@ -272,9 +292,16 @@ class BufExplManager(Manager):
             lfCmd("setlocal nomodifiable")
 
     def _previewInPopup(self, *args, **kwargs):
+        if len(args) == 0 or args[0] == '':
+            return
+
         line = args[0]
         buf_number = int(re.sub(r"^.*?(\d+).*$", r"\1", line))
-        self._createPopupPreview(vim.buffers[buf_number].name, buf_number, 0)
+        if lfEval("bufloaded(%d)" % buf_number) == '0':
+            lfCmd("silent call bufload(%d)" % buf_number)
+
+        jump_cmd = 'silent! normal! g`"'
+        self._createPopupPreview(vim.buffers[buf_number].name, buf_number, 0, jump_cmd)
 
 
 #*****************************************************

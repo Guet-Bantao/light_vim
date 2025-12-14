@@ -9,20 +9,27 @@ from .utils import *
 
 if sys.version_info >= (3, 0):
     import queue as Queue
+    lfDEVNULL = subprocess.DEVNULL
 else:
     import Queue
+    lfDEVNULL = open(os.devnull)
 
+
+max_count = int(lfEval("g:Lf_MaxCount"))
 
 class AsyncExecutor(object):
     """
     A class to implement executing a command in subprocess, then
     read the output asynchronously.
     """
-    def __init__(self):
-        self._errQueue = Queue.Queue()
+    def __init__(self, no_limit=False):
+        self._errQueue = None
         self._process = None
         self._finished = False
-        self._max_count = int(lfEval("g:Lf_MaxCount"))
+        if no_limit == True:
+            self._max_count = 0
+        else:
+            self._max_count = max_count
 
     def _readerThread(self, fd, queue):
         try:
@@ -33,24 +40,29 @@ class AsyncExecutor(object):
         finally:
             queue.put(None)
 
-    def execute(self, cmd, encoding=None, cleanup=None, env=None, raise_except=True, format_line=None):
+    def execute(self, cmd, encoding=None, cleanup=None, env=None,
+                raise_except=True, format_line=None, cwd=None):
         if os.name == 'nt':
             self._process = subprocess.Popen(cmd, bufsize=-1,
-                                             stdin=subprocess.PIPE,
+                                             stdin=lfDEVNULL,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE,
                                              shell=True,
+                                             cwd=cwd,
                                              env=env,
                                              universal_newlines=False)
         else:
             self._process = subprocess.Popen(cmd, bufsize=-1,
+                                             stdin=lfDEVNULL,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE,
                                              preexec_fn=os.setsid,
                                              shell=True,
+                                             cwd=cwd,
                                              env=env,
                                              universal_newlines=False)
 
+        self._errQueue = Queue.Queue()
         self._finished = False
 
         stderr_thread = threading.Thread(target=self._readerThread,
@@ -98,8 +110,8 @@ class AsyncExecutor(object):
                                     break
 
                     err = b"".join(iter(self._errQueue.get, None))
-                    if err and raise_except:
-                        raise Exception(lfBytes2Str(err, encoding))
+                    if err and not err.startswith(b"warning") and raise_except:
+                        raise Exception(cmd + "\n" + lfBytes2Str(err) + lfBytes2Str(err, encoding))
                 except ValueError:
                     pass
                 finally:
@@ -108,7 +120,10 @@ class AsyncExecutor(object):
                         if self._process:
                             self._process.stdout.close()
                             self._process.stderr.close()
+                            self._process.poll()
                     except IOError:
+                        pass
+                    except AttributeError:
                         pass
 
                     if cleanup:
@@ -145,8 +160,8 @@ class AsyncExecutor(object):
                                     break
 
                     err = b"".join(iter(self._errQueue.get, None))
-                    if err and raise_except:
-                        raise Exception(err)
+                    if err and not err.startswith("warning") and raise_except:
+                        raise Exception(lfEncode(err) + err)
                 except ValueError:
                     pass
                 finally:
@@ -155,7 +170,10 @@ class AsyncExecutor(object):
                         if self._process:
                             self._process.stdout.close()
                             self._process.stderr.close()
+                            self._process.poll()
                     except IOError:
+                        pass
+                    except AttributeError:
                         pass
 
                     if cleanup:
@@ -177,6 +195,7 @@ class AsyncExecutor(object):
                 except OSError:
                     pass
 
+            self._process.poll()
             self._process = None
 
     class Result(object):
@@ -196,8 +215,14 @@ class AsyncExecutor(object):
             return self
 
         def __iter__(self):
-            return self._g
+            return self
 
+        def __next__(self):
+            return next(self._g)
+
+        # for python2
+        def next(self):
+            return next(self._g)
 
 if __name__ == "__main__":
     executor = AsyncExecutor()

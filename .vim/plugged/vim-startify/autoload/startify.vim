@@ -152,6 +152,8 @@ function! startify#insane_in_the_membrane(on_vimenter) abort
 
   setlocal nomodifiable nomodified
 
+  call s:hide_endofbuffer_markers()
+
   call s:set_mappings()
   call cursor(b:startify.firstline, 5)
   autocmd startify CursorMoved <buffer> call s:set_cursor()
@@ -440,7 +442,7 @@ endfunction
 function! startify#center(lines) abort
   let longest_line = max(map(copy(a:lines), 'strwidth(v:val)'))
   return map(copy(a:lines),
-        \ 'repeat(" ", (&columns / 2) - (longest_line / 2) - 1) . v:val')
+        \ 'repeat(" ", (winwidth(0) / 2) - (longest_line / 2) - 1) . v:val')
 endfunction
 
 " Function: s:get_lists {{{1
@@ -596,7 +598,12 @@ function! s:filter_oldfiles(path_prefix, path_format, use_env) abort
       continue
     endif
 
-    let absolute_path = fnamemodify(resolve(fname), ":p")
+    try
+      let absolute_path = fnamemodify(resolve(fname), ":p")
+    catch /E655/  " Too many symbolic links (cycle?)
+      call s:warn('Symlink loop detected! Skipping: '. fname)
+      continue
+    endtry
     " filter duplicates, bookmarks and entries from the skiplist
     if has_key(entries, absolute_path)
           \ || !filereadable(absolute_path)
@@ -916,17 +923,23 @@ function! startify#set_mark(type, ...) abort
   let index = expand('<cword>')
   setlocal modifiable
 
+  " https://github.com/vim/vim/issues/8053
+  let showmatch = &showmatch
+  let &showmatch = 0
+
   if entry.marked && index[0] == a:type
     let entry.cmd = 'edit'
     let entry.marked = 0
-    execute 'normal! ci]'. entry.index
+    execute 'normal! "_ci]'. entry.index
   else
     let entry.cmd = default_cmds[a:type]
     let entry.marked = 1
     let entry.tick = b:startify.tick
     let b:startify.tick += 1
-    execute 'normal! ci]'. repeat(a:type, len(index))
+    execute 'normal! "_ci]'. repeat(a:type, len(index))
   endif
+
+  let &showmatch = showmatch
 
   setlocal nomodifiable nomodified
   " Reset cursor to fixed column, which is important for s:set_cursor().
@@ -1054,7 +1067,7 @@ function! s:create_last_session_link(session_path)
     let cmd = printf('ln -sf %s %s',
           \ shellescape(fnamemodify(a:session_path, ':t')),
           \ shellescape(s:session_dir .'/__LAST__'))
-    call system(cmd)
+    silent call system(cmd)
     if v:shell_error
       call s:warn("Can't create 'last used session' symlink.")
     endif
@@ -1109,6 +1122,24 @@ function s:transform(absolute_path)
     unlet V
   endfor
   return ''
+endfunction
+
+" Function: s:hide_endofbuffer_markers {{{1
+" Use the bg color of Normal to set the fg color of EndOfBuffer, effectively
+" hiding it.
+function! s:hide_endofbuffer_markers()
+  if !exists('+winhl')
+    return
+  endif
+  let val = synIDattr(hlID('Normal'), 'bg')
+  if empty(val)
+    return
+  elseif val =~ '^\d*$'
+    execute 'highlight StartifyEndOfBuffer ctermfg='. val
+  else
+    execute 'highlight StartifyEndOfBuffer guifg='. val
+  endif
+  setlocal winhighlight=EndOfBuffer:StartifyEndOfBuffer
 endfunction
 
 " Function: s:warn {{{1

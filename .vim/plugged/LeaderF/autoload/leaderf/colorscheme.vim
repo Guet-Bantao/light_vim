@@ -14,8 +14,11 @@ endfunction
 let s:modeMap = {
             \   'NameOnly': 'Lf_hl_stlNameOnlyMode',
             \   'FullPath': 'Lf_hl_stlFullPathMode',
+            \   'Contents': 'Lf_hl_stlNameOnlyMode',
+            \   'WholeLine': 'Lf_hl_stlFullPathMode',
             \   'Fuzzy': 'Lf_hl_stlFuzzyMode',
-            \   'Regex': 'Lf_hl_stlRegexMode'
+            \   'Regex': 'Lf_hl_stlRegexMode',
+            \   'Live': 'Lf_hl_stlFuzzyMode'
             \ }
 
 let s:leftSep = {
@@ -68,7 +71,7 @@ function! s:LoadFromPalette() abort
     endfor
 endfunction
 
-function! leaderf#colorscheme#highlight(category)
+function! leaderf#colorscheme#highlight(category, bufnr)
     try
         let s:palette = g:leaderf#colorscheme#{g:Lf_StlColorscheme}#palette
     catch /^Vim\%((\a\+)\)\=:E121/
@@ -108,8 +111,8 @@ function! leaderf#colorscheme#highlight(category)
         let right_guibg = synIDattr(sid_right, "bg", "gui")
         let right_ctermbg = synIDattr(sid_right, "bg", "cterm")
         let hiCmd = printf("hi Lf_hl_%s_%s", a:category, sep)
-        let hiCmd .= printf(" guifg=%s guibg=%s", left_guibg == '' ? 'NONE': left_guibg, right_guibg == '' ? 'NONE': right_guibg)
-        let hiCmd .= printf(" ctermfg=%s ctermbg=%s", left_ctermbg == '' ? 'NONE': left_ctermbg, right_ctermbg == '' ? 'NONE': right_ctermbg)
+        let hiCmd .= printf(" gui=nocombine guifg=%s guibg=%s", left_guibg == '' ? 'NONE': left_guibg, right_guibg == '' ? 'NONE': right_guibg)
+        let hiCmd .= printf(" cterm=nocombine ctermfg=%s ctermbg=%s", left_ctermbg == '' ? 'NONE': left_ctermbg, right_ctermbg == '' ? 'NONE': right_ctermbg)
         if get(g:Lf_StlSeparator, "font", "") != ""
             let hiCmd .= printf(" font='%s'", g:Lf_StlSeparator["font"])
         endif
@@ -124,14 +127,15 @@ function! leaderf#colorscheme#highlight(category)
         let right_guibg = synIDattr(sid_right, "bg", "gui")
         let right_ctermbg = synIDattr(sid_right, "bg", "cterm")
         let hiCmd = printf("hi Lf_hl_%s_%s", a:category, sep)
-        let hiCmd .= printf(" guifg=%s guibg=%s", right_guibg == '' ? 'NONE': right_guibg, left_guibg == '' ? 'NONE': left_guibg)
-        let hiCmd .= printf(" ctermfg=%s ctermbg=%s", right_ctermbg == '' ? 'NONE': right_ctermbg, left_ctermbg == '' ? 'NONE': left_ctermbg)
+        let hiCmd .= printf(" gui=nocombine guifg=%s guibg=%s", right_guibg == '' ? 'NONE': right_guibg, left_guibg == '' ? 'NONE': left_guibg)
+        let hiCmd .= printf(" cterm=nocombine ctermfg=%s ctermbg=%s", right_ctermbg == '' ? 'NONE': right_ctermbg, left_ctermbg == '' ? 'NONE': left_ctermbg)
         if get(g:Lf_StlSeparator, "font", "") != ""
             let hiCmd .= printf(" font='%s'", g:Lf_StlSeparator["font"])
         endif
         exec hiCmd
     endfor
 
+    exec printf("hi link Lf_hl_%s_stlBlank Lf_hl_stlBlank", a:category)
     redrawstatus
 endfunction
 
@@ -144,6 +148,35 @@ function! leaderf#colorscheme#highlightMode(category, mode)
     exec printf("hi Lf_hl_%s_stlSeparator1 ctermbg=%s", a:category, ctermbg == '' ? 'NONE': ctermbg)
     exec printf("hi Lf_hl_%s_stlSeparator2 guifg=%s", a:category, guibg == '' ? 'NONE': guibg)
     exec printf("hi Lf_hl_%s_stlSeparator2 ctermfg=%s", a:category, ctermbg == '' ? 'NONE': ctermbg)
+    redrawstatus
+endfunction
+
+function! leaderf#colorscheme#highlightBlank(category, bufnr)
+    let mod = getbufvar(a:bufnr, "&modified")
+    if getbufvar(a:bufnr, "lf_buffer_changed") == mod
+        return
+    endif
+
+    call setbufvar(a:bufnr, "lf_buffer_changed", mod)
+
+    if getbufvar(a:bufnr, "&modified") == 1
+        let blank = "DiffChange"
+    else
+        let blank = "Lf_hl_stlBlank"
+    endif
+    let sid = synIDtrans(hlID(blank))
+    if synIDattr(sid, "reverse") || synIDattr(sid, "inverse")
+        let guibg = synIDattr(sid, "fg", "gui")
+        let ctermbg = synIDattr(sid, "fg", "cterm")
+    else
+        let guibg = synIDattr(sid, "bg", "gui")
+        let ctermbg = synIDattr(sid, "bg", "cterm")
+    endif
+    exec printf("hi link Lf_hl_%s_stlBlank %s", a:category, blank)
+    exec printf("hi Lf_hl_%s_stlSeparator3 guibg=%s", a:category, guibg == '' ? 'NONE': guibg)
+    exec printf("hi Lf_hl_%s_stlSeparator3 ctermbg=%s", a:category, ctermbg == '' ? 'NONE': ctermbg)
+    exec printf("hi Lf_hl_%s_stlSeparator4 guibg=%s", a:category, guibg == '' ? 'NONE': guibg)
+    exec printf("hi Lf_hl_%s_stlSeparator4 ctermbg=%s", a:category, ctermbg == '' ? 'NONE': ctermbg)
     redrawstatus
 endfunction
 

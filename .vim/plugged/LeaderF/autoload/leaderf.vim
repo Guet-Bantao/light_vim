@@ -11,9 +11,11 @@ if !exists("g:Lf_PythonVersion")
     if has("python3")
         let g:Lf_PythonVersion = 3
         let g:Lf_py = "py3 "
+        let g:Lf_PyEval = function("py3eval")
     elseif has("python")
         let g:Lf_PythonVersion = 2
         let g:Lf_py = "py "
+        let g:Lf_PyEval = function("pyeval")
     else
         echoe "Error: LeaderF requires vim compiled with +python or +python3"
         finish
@@ -22,6 +24,7 @@ else
     if g:Lf_PythonVersion == 2
         if has("python")
             let g:Lf_py = "py "
+            let g:Lf_PyEval = function("pyeval")
         else
             echoe 'LeaderF Error: has("python") == 0'
             finish
@@ -29,6 +32,7 @@ else
     else
         if has("python3")
             let g:Lf_py = "py3 "
+            let g:Lf_PyEval = function("py3eval")
         else
             echoe 'LeaderF Error: has("python3") == 0'
             finish
@@ -67,10 +71,10 @@ function! s:InitDict(var, dict)
 endfunction
 
 call s:InitVar('g:Lf_WindowHeight', '0.5')
-call s:InitVar('g:Lf_TabpagePosition', 2)
+call s:InitVar('g:Lf_TabpagePosition', 3)
 call s:InitVar('g:Lf_ShowRelativePath', 1)
 call s:InitVar('g:Lf_DefaultMode', 'FullPath')
-call s:InitVar('g:Lf_CursorBlink', 1)
+call s:InitVar('g:Lf_CursorBlink', 0)
 call s:InitVar('g:Lf_NeedCacheTime', '1.5')
 call s:InitVar('g:Lf_NumberOfCache', 5)
 call s:InitVar('g:Lf_UseMemoryCache', 1)
@@ -117,14 +121,16 @@ call s:InitVar('g:Lf_WorkingDirectoryMode', 'c')
 call s:InitVar('g:Lf_WorkingDirectory', '')
 call s:InitVar('g:Lf_ShowHidden', 0)
 call s:InitDict('g:Lf_PreviewResult', {
-            \ 'File': 0,
-            \ 'Buffer': 0,
-            \ 'Mru': 0,
-            \ 'Tag': 0,
+            \ 'File': 1,
+            \ 'Buffer': 1,
+            \ 'Mru': 1,
+            \ 'Tag': 1,
             \ 'BufTag': 1,
             \ 'Function': 1,
-            \ 'Line': 0,
-            \ 'Colorscheme': 0
+            \ 'Line': 1,
+            \ 'Colorscheme': 0,
+            \ 'Rg': 1,
+            \ 'Jumps': 1
             \})
 call s:InitDict('g:Lf_NormalMap', {})
 call s:InitVar('g:Lf_Extensions', {})
@@ -136,6 +142,22 @@ call s:InitDict('g:Lf_GtagsfilesCmd', {
             \ 'default': 'rg --no-messages --files'
             \})
 call s:InitVar('g:Lf_HistoryEditPromptIfEmpty', 1)
+call s:InitVar('g:Lf_PopupBorders', ["─","│","─","│","╭","╮","╯","╰"])
+call s:InitVar('g:Lf_GitFolderIcons', {
+            \ 'open': '',
+            \ 'closed': '',
+            \})
+call s:InitVar('g:Lf_GitKeyMap', {
+            \ 'previous_change': '[c',
+            \ 'next_change': ']c',
+            \ 'edit_file': '<CR>',
+            \})
+
+call s:InitDict('g:Lf_GitAlias', {
+            \ "status": "st",
+            \ "diff":   "df",
+            \ "blame":  "bl",
+            \})
 
 let s:Lf_CommandMap = {
             \ '<C-A>':         ['<C-A>'],
@@ -163,6 +185,7 @@ let s:Lf_CommandMap = {
             \ '<C-Y>':         ['<C-Y>'],
             \ '<C-Z>':         ['<C-Z>'],
             \ '<C-]>':         ['<C-]>'],
+            \ '<C-\>':         ['<C-\>'],
             \ '<F1>':          ['<F1>'],
             \ '<F2>':          ['<F2>'],
             \ '<F3>':          ['<F3>'],
@@ -241,6 +264,7 @@ let g:Lf_KeyMap = {
             \ "\<C-Y>":         '<C-Y>',
             \ "\<C-Z>":         '<C-Z>',
             \ "\<C-]>":         '<C-]>',
+            \ "\<C-\>":         '<C-\>',
             \ "\<F1>":          '<F1>',
             \ "\<F2>":          '<F2>',
             \ "\<F3>":          '<F3>',
@@ -293,267 +317,6 @@ let g:Lf_KeyMap = {
             \ "\<SCROLLWHEELDOWN>": '<SCROLLWHEELDOWN>'
             \}
 
-let g:Lf_DevIconsPalette = {
-            \   'light': {
-            \       '_':            { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       'default':      { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       '.gvimrc':      { 'guifg': '#007F00', 'ctermfg': '28'   },
-            \       '.vimrc':       { 'guifg': '#007F00', 'ctermfg': '28'   },
-            \       '_gvimrc':      { 'guifg': '#007F00', 'ctermfg': '28'   },
-            \       '_vimrc':       { 'guifg': '#007F00', 'ctermfg': '28'   },
-            \       'ai':           { 'guifg': '#F37021', 'ctermfg': '202'  },
-            \       'awk':          { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'bash':         { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'bat':          { 'guifg': '#7ab8b8', 'ctermfg': '109'  },
-            \       'bmp':          { 'guifg': '#28b48f', 'ctermfg': '36'   },
-            \       'c':            { 'guifg': '#005f91', 'ctermfg': '24'   },
-            \       'c++':          { 'guifg': '#984c93', 'ctermfg': '96'   },
-            \       'cc':           { 'guifg': '#984c93', 'ctermfg': '96'   },
-            \       'chs':          { 'guifg': '#8f4e8b', 'ctermfg': '96'   },
-            \       'cl':           { 'guifg': '#aa79c1', 'ctermfg': '139'  },
-            \       'clj':          { 'guifg': '#63b132', 'ctermfg': '70'   },
-            \       'cljc':         { 'guifg': '#63b132', 'ctermfg': '70'   },
-            \       'cljs':         { 'guifg': '#63b132', 'ctermfg': '70'   },
-            \       'cljx':         { 'guifg': '#63b132', 'ctermfg': '70'   },
-            \       'coffee':       { 'guifg': '#6f4e37', 'ctermfg': '58'   },
-            \       'conf':         { 'guifg': '#99b8c4', 'ctermfg': '110'  },
-            \       'cp':           { 'guifg': '#984c93', 'ctermfg': '96'   },
-            \       'cpp':          { 'guifg': '#984c93', 'ctermfg': '96'   },
-            \       'cs':           { 'guifg': '#368832', 'ctermfg': '28'   },
-            \       'csh':          { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'css':          { 'guifg': '#1572b6', 'ctermfg': '25'   },
-            \       'cxx':          { 'guifg': '#984c93', 'ctermfg': '96'   },
-            \       'd':            { 'guifg': '#b03931', 'ctermfg': '124'  },
-            \       'dart':         { 'guifg': '#66c3fa', 'ctermfg': '81'   },
-            \       'db':           { 'guifg': '#8b93a2', 'ctermfg': '103'  },
-            \       'diff':         { 'guifg': '#dd4c35', 'ctermfg': '166'  },
-            \       'dump':         { 'guifg': '#8b93a2', 'ctermfg': '103'  },
-            \       'edn':          { 'guifg': '#63b132', 'ctermfg': '70'   },
-            \       'eex':          { 'guifg': '#6f567e', 'ctermfg': '60'   },
-            \       'ejs':          { 'guifg': '#90a93a', 'ctermfg': '106'  },
-            \       'el':           { 'guifg': '#aa79c1', 'ctermfg': '139'  },
-            \       'elm':          { 'guifg': '#5fb4cb', 'ctermfg': '74'   },
-            \       'erl':          { 'guifg': '#a2003e', 'ctermfg': '124'  },
-            \       'es':           { 'guifg': '#d7a723', 'ctermfg': '178'  },
-            \       'ex':           { 'guifg': '#6f567e', 'ctermfg': '60'   },
-            \       'exs':          { 'guifg': '#6f567e', 'ctermfg': '60'   },
-            \       'f#':           { 'guifg': '#378bba', 'ctermfg': '31'   },
-            \       'fish':         { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'fs':           { 'guifg': '#378bba', 'ctermfg': '31'   },
-            \       'fsi':          { 'guifg': '#378bba', 'ctermfg': '31'   },
-            \       'fsscript':     { 'guifg': '#378bba', 'ctermfg': '31'   },
-            \       'fsx':          { 'guifg': '#378bba', 'ctermfg': '31'   },
-            \       'gif':          { 'guifg': '#28b48f', 'ctermfg': '36'   },
-            \       'go':           { 'guifg': '#00acd7', 'ctermfg': '38'   },
-            \       'gvimrc':       { 'guifg': '#007F00', 'ctermfg': '28'   },
-            \       'h':            { 'guifg': '#984c93', 'ctermfg': '96'   },
-            \       'hbs':          { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       'hh':           { 'guifg': '#984c93', 'ctermfg': '96'   },
-            \       'hpp':          { 'guifg': '#984c93', 'ctermfg': '96'   },
-            \       'hrl':          { 'guifg': '#a2003e', 'ctermfg': '124'  },
-            \       'hs':           { 'guifg': '#8f4e8b', 'ctermfg': '96'   },
-            \       'hs-boot':      { 'guifg': '#8f4e8b', 'ctermfg': '96'   },
-            \       'htm':          { 'guifg': '#f1662a', 'ctermfg': '202'  },
-            \       'html':         { 'guifg': '#f1662a', 'ctermfg': '202'  },
-            \       'hxx':          { 'guifg': '#984c93', 'ctermfg': '96'   },
-            \       'ico':          { 'guifg': '#28b48f', 'ctermfg': '36'   },
-            \       'ini':          { 'guifg': '#99b8c4', 'ctermfg': '110'  },
-            \       'java':         { 'guifg': '#5382a1', 'ctermfg': '67'   },
-            \       'javascript':   { 'guifg': '#d7a723', 'ctermfg': '178'  },
-            \       'jl':           { 'guifg': '#aa79c1', 'ctermfg': '139'  },
-            \       'jpeg':         { 'guifg': '#28b48f', 'ctermfg': '36'   },
-            \       'jpg':          { 'guifg': '#28b48f', 'ctermfg': '36'   },
-            \       'js':           { 'guifg': '#d7a723', 'ctermfg': '178'  },
-            \       'json':         { 'guifg': '#d7a723', 'ctermfg': '178'  },
-            \       'jsx':          { 'guifg': '#00a6ff', 'ctermfg': '39'   },
-            \       'ksh':          { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'leex':         { 'guifg': '#6f567e', 'ctermfg': '60'   },
-            \       'less':         { 'guifg': '#2a4f84', 'ctermfg': '24'   },
-            \       'lhs':          { 'guifg': '#8f4e8b', 'ctermfg': '96'   },
-            \       'lua':          { 'guifg': '#3e6dbf', 'ctermfg': '25'   },
-            \       'markdown':     { 'guifg': '#755838', 'ctermfg': '94'   },
-            \       'md':           { 'guifg': '#755838', 'ctermfg': '94'   },
-            \       'mdx':          { 'guifg': '#755838', 'ctermfg': '94'   },
-            \       'mjs':          { 'guifg': '#d7a723', 'ctermfg': '178'  },
-            \       'ml':           { 'guifg': '#a1a1a1', 'ctermfg': '246'  },
-            \       'mli':          { 'guifg': '#a1a1a1', 'ctermfg': '246'  },
-            \       'mustache':     { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       'php':          { 'guifg': '#6280b6', 'ctermfg': '67'   },
-            \       'pl':           { 'guifg': '#00acd7', 'ctermfg': '38'   },
-            \       'pm':           { 'guifg': '#00acd7', 'ctermfg': '38'   },
-            \       'png':          { 'guifg': '#28b48f', 'ctermfg': '36'   },
-            \       'pp':           { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       'ps1':          { 'guifg': '#af4343', 'ctermfg': '124'  },
-            \       'psb':          { 'guifg': '#00ade6', 'ctermfg': '38'   },
-            \       'psd':          { 'guifg': '#00ade6', 'ctermfg': '38'   },
-            \       'py':           { 'guifg': '#366994', 'ctermfg': '24'   },
-            \       'pyc':          { 'guifg': '#366994', 'ctermfg': '24'   },
-            \       'pyd':          { 'guifg': '#366994', 'ctermfg': '24'   },
-            \       'pyi':          { 'guifg': '#366994', 'ctermfg': '24'   },
-            \       'pyo':          { 'guifg': '#366994', 'ctermfg': '24'   },
-            \       'pyw':          { 'guifg': '#366994', 'ctermfg': '24'   },
-            \       'rb':           { 'guifg': '#871101', 'ctermfg': '88'   },
-            \       'rbw':          { 'guifg': '#871101', 'ctermfg': '88'   },
-            \       'rlib':         { 'guifg': '#817871', 'ctermfg': '101'  },
-            \       'rmd':          { 'guifg': '#755838', 'ctermfg': '94'   },
-            \       'rs':           { 'guifg': '#817871', 'ctermfg': '101'  },
-            \       'rss':          { 'guifg': '#00acd7', 'ctermfg': '38'   },
-            \       'sass':         { 'guifg': '#cd6799', 'ctermfg': '168'  },
-            \       'scala':        { 'guifg': '#33bbff', 'ctermfg': '39'   },
-            \       'scss':         { 'guifg': '#cd6799', 'ctermfg': '168'  },
-            \       'sh':           { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'slim':         { 'guifg': '#719E40', 'ctermfg': '70'   },
-            \       'sln':          { 'guifg': '#00519a', 'ctermfg': '24'   },
-            \       'sql':          { 'guifg': '#8b93a2', 'ctermfg': '103'  },
-            \       'styl':         { 'guifg': '#1572b6', 'ctermfg': '25'   },
-            \       'suo':          { 'guifg': '#00519a', 'ctermfg': '24'   },
-            \       'swift':        { 'guifg': '#f88535', 'ctermfg': '208'  },
-            \       't':            { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       'toml':         { 'guifg': '#7e7f7f', 'ctermfg': '243'  },
-            \       'ts':           { 'guifg': '#007acc', 'ctermfg': '32'   },
-            \       'tsx':          { 'guifg': '#00a6ff', 'ctermfg': '39'   },
-            \       'twig':         { 'guifg': '#63bf6a', 'ctermfg': '71'   },
-            \       'vim':          { 'guifg': '#007F00', 'ctermfg': '28'   },
-            \       'vimrc':        { 'guifg': '#007F00', 'ctermfg': '28'   },
-            \       'vue':          { 'guifg': '#41b883', 'ctermfg': '36'   },
-            \       'webp':         { 'guifg': '#28b48f', 'ctermfg': '36'   },
-            \       'xcplayground': { 'guifg': '#f88535', 'ctermfg': '208'  },
-            \       'xul':          { 'guifg': '#f1662a', 'ctermfg': '202'  },
-            \       'yaml':         { 'guifg': '#d7a723', 'ctermfg': '178'  },
-            \       'yml':          { 'guifg': '#d7a723', 'ctermfg': '178'  },
-            \       'zsh':          { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \   },
-            \   'dark': {
-            \       '_':            { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       'default':      { 'guifg': '#d8e698', 'ctermfg': '186' },
-            \       '.gvimrc':      { 'guifg': '#00cc00', 'ctermfg': '40'   },
-            \       '.vimrc':       { 'guifg': '#00cc00', 'ctermfg': '40'   },
-            \       '_gvimrc':      { 'guifg': '#00cc00', 'ctermfg': '40'   },
-            \       '_vimrc':       { 'guifg': '#00cc00', 'ctermfg': '40'   },
-            \       'ai':           { 'guifg': '#F37021', 'ctermfg': '202'  },
-            \       'awk':          { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'bash':         { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'bat':          { 'guifg': '#bedcdc', 'ctermfg': '152'  },
-            \       'bmp':          { 'guifg': '#2dcc9f', 'ctermfg': '43'   },
-            \       'c':            { 'guifg': '#44cef6', 'ctermfg': '81'   },
-            \       'c++':          { 'guifg': '#87d37c', 'ctermfg': '114'  },
-            \       'cc':           { 'guifg': '#87d37c', 'ctermfg': '114'  },
-            \       'chs':          { 'guifg': '#b87bb4', 'ctermfg': '139'  },
-            \       'cl':           { 'guifg': '#aa79c1', 'ctermfg': '139'  },
-            \       'clj':          { 'guifg': '#63b132', 'ctermfg': '70'   },
-            \       'cljc':         { 'guifg': '#9cd775', 'ctermfg': '150'  },
-            \       'cljs':         { 'guifg': '#9cd775', 'ctermfg': '150'  },
-            \       'cljx':         { 'guifg': '#9cd775', 'ctermfg': '150'  },
-            \       'coffee':       { 'guifg': '#bc9372', 'ctermfg': '137'  },
-            \       'conf':         { 'guifg': '#99b8c4', 'ctermfg': '110'  },
-            \       'cp':           { 'guifg': '#87d37c', 'ctermfg': '114'  },
-            \       'cpp':          { 'guifg': '#87d37c', 'ctermfg': '114'  },
-            \       'cs':           { 'guifg': '#57c153', 'ctermfg': '71'   },
-            \       'csh':          { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'css':          { 'guifg': '#3199e9', 'ctermfg': '32'   },
-            \       'cxx':          { 'guifg': '#87d37c', 'ctermfg': '114'  },
-            \       'd':            { 'guifg': '#b03931', 'ctermfg': '124'  },
-            \       'dart':         { 'guifg': '#66c3fa', 'ctermfg': '81'   },
-            \       'db':           { 'guifg': '#c4c7ce', 'ctermfg': '188'  },
-            \       'diff':         { 'guifg': '#dd4c35', 'ctermfg': '166'  },
-            \       'dump':         { 'guifg': '#c4c7ce', 'ctermfg': '188'  },
-            \       'edn':          { 'guifg': '#63b132', 'ctermfg': '70'   },
-            \       'eex':          { 'guifg': '#957aa5', 'ctermfg': '103'  },
-            \       'ejs':          { 'guifg': '#bed27b', 'ctermfg': '150'  },
-            \       'el':           { 'guifg': '#aa79c1', 'ctermfg': '139'  },
-            \       'elm':          { 'guifg': '#5fb4cb', 'ctermfg': '74'   },
-            \       'erl':          { 'guifg': '#eb0057', 'ctermfg': '197'  },
-            \       'es':           { 'guifg': '#f5de19', 'ctermfg': '220'  },
-            \       'ex':           { 'guifg': '#957aa5', 'ctermfg': '103'  },
-            \       'exs':          { 'guifg': '#957aa5', 'ctermfg': '103'  },
-            \       'f#':           { 'guifg': '#71b1d6', 'ctermfg': '74'   },
-            \       'fish':         { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'fs':           { 'guifg': '#71b1d6', 'ctermfg': '74'   },
-            \       'fsi':          { 'guifg': '#71b1d6', 'ctermfg': '74'   },
-            \       'fsscript':     { 'guifg': '#71b1d6', 'ctermfg': '74'   },
-            \       'fsx':          { 'guifg': '#71b1d6', 'ctermfg': '74'   },
-            \       'gif':          { 'guifg': '#2dcc9f', 'ctermfg': '43'   },
-            \       'go':           { 'guifg': '#00acd7', 'ctermfg': '38'   },
-            \       'gvimrc':       { 'guifg': '#00cc00', 'ctermfg': '40'   },
-            \       'h':            { 'guifg': '#87d37c', 'ctermfg': '114'  },
-            \       'hbs':          { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       'hh':           { 'guifg': '#87d37c', 'ctermfg': '114'  },
-            \       'hpp':          { 'guifg': '#87d37c', 'ctermfg': '114'  },
-            \       'hrl':          { 'guifg': '#eb0057', 'ctermfg': '197'  },
-            \       'hs':           { 'guifg': '#b87bb4', 'ctermfg': '139'  },
-            \       'hs-boot':      { 'guifg': '#b87bb4', 'ctermfg': '139'  },
-            \       'htm':          { 'guifg': '#f1662a', 'ctermfg': '202'  },
-            \       'html':         { 'guifg': '#f1662a', 'ctermfg': '202'  },
-            \       'hxx':          { 'guifg': '#87d37c', 'ctermfg': '114'  },
-            \       'ico':          { 'guifg': '#2dcc9f', 'ctermfg': '43'   },
-            \       'ini':          { 'guifg': '#99b8c4', 'ctermfg': '110'  },
-            \       'java':         { 'guifg': '#abc3ee', 'ctermfg': '153'  },
-            \       'javascript':   { 'guifg': '#f5de19', 'ctermfg': '220'  },
-            \       'jl':           { 'guifg': '#aa79c1', 'ctermfg': '139'  },
-            \       'jpeg':         { 'guifg': '#2dcc9f', 'ctermfg': '43'   },
-            \       'jpg':          { 'guifg': '#2dcc9f', 'ctermfg': '43'   },
-            \       'js':           { 'guifg': '#f5de19', 'ctermfg': '220'  },
-            \       'json':         { 'guifg': '#f5de19', 'ctermfg': '220'  },
-            \       'jsx':          { 'guifg': '#00d8ff', 'ctermfg': '45'   },
-            \       'ksh':          { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'leex':         { 'guifg': '#957aa5', 'ctermfg': '103'  },
-            \       'less':         { 'guifg': '#779dd6', 'ctermfg': '110'  },
-            \       'lhs':          { 'guifg': '#b87bb4', 'ctermfg': '139'  },
-            \       'lua':          { 'guifg': '#658ace', 'ctermfg': '68'   },
-            \       'markdown':     { 'guifg': '#b48d60', 'ctermfg': '137'  },
-            \       'md':           { 'guifg': '#b48d60', 'ctermfg': '137'  },
-            \       'mdx':          { 'guifg': '#b48d60', 'ctermfg': '137'  },
-            \       'mjs':          { 'guifg': '#f5de19', 'ctermfg': '220'  },
-            \       'ml':           { 'guifg': '#cfcfcf', 'ctermfg': '251'  },
-            \       'mli':          { 'guifg': '#cfcfcf', 'ctermfg': '251'  },
-            \       'mustache':     { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       'php':          { 'guifg': '#859cc7', 'ctermfg': '110'  },
-            \       'pl':           { 'guifg': '#00acd7', 'ctermfg': '38'   },
-            \       'pm':           { 'guifg': '#00acd7', 'ctermfg': '38'   },
-            \       'png':          { 'guifg': '#2dcc9f', 'ctermfg': '43'   },
-            \       'pp':           { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       'ps1':          { 'guifg': '#af4343', 'ctermfg': '124'  },
-            \       'psb':          { 'guifg': '#26C9FF', 'ctermfg': '45'   },
-            \       'psd':          { 'guifg': '#26C9FF', 'ctermfg': '45'   },
-            \       'py':           { 'guifg': '#5790c3', 'ctermfg': '68'   },
-            \       'pyc':          { 'guifg': '#5790c3', 'ctermfg': '68'   },
-            \       'pyd':          { 'guifg': '#5790c3', 'ctermfg': '68'   },
-            \       'pyi':          { 'guifg': '#5790c3', 'ctermfg': '68'   },
-            \       'pyo':          { 'guifg': '#5790c3', 'ctermfg': '68'   },
-            \       'pyw':          { 'guifg': '#5790c3', 'ctermfg': '68'   },
-            \       'rb':           { 'guifg': '#e52002', 'ctermfg': '160'  },
-            \       'rbw':          { 'guifg': '#e52002', 'ctermfg': '160'  },
-            \       'rlib':         { 'guifg': '#bbb5b0', 'ctermfg': '145'  },
-            \       'rmd':          { 'guifg': '#b48d60', 'ctermfg': '137'  },
-            \       'rs':           { 'guifg': '#bbb5b0', 'ctermfg': '145'  },
-            \       'rss':          { 'guifg': '#00acd7', 'ctermfg': '38'   },
-            \       'sass':         { 'guifg': '#d287da', 'ctermfg': '176'  },
-            \       'scala':        { 'guifg': '#7ce1ff', 'ctermfg': '117'  },
-            \       'scss':         { 'guifg': '#d287da', 'ctermfg': '176'  },
-            \       'sh':           { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \       'slim':         { 'guifg': '#a0c875', 'ctermfg': '150'  },
-            \       'sln':          { 'guifg': '#0078cc', 'ctermfg': '32'   },
-            \       'sql':          { 'guifg': '#c4c7ce', 'ctermfg': '188'  },
-            \       'styl':         { 'guifg': '#3199e9', 'ctermfg': '32'   },
-            \       'suo':          { 'guifg': '#0078cc', 'ctermfg': '32'   },
-            \       'swift':        { 'guifg': '#f88535', 'ctermfg': '208'  },
-            \       't':            { 'guifg': 'NONE',    'ctermfg': 'NONE' },
-            \       'toml':         { 'guifg': '#9b9898', 'ctermfg': '138'  },
-            \       'ts':           { 'guifg': '#33aaff', 'ctermfg': '39'   },
-            \       'tsx':          { 'guifg': '#00d8ff', 'ctermfg': '45'   },
-            \       'twig':         { 'guifg': '#63bf6a', 'ctermfg': '71'   },
-            \       'vim':          { 'guifg': '#00cc00', 'ctermfg': '40'   },
-            \       'vimrc':        { 'guifg': '#00cc00', 'ctermfg': '40'   },
-            \       'vue':          { 'guifg': '#41b883', 'ctermfg': '36'   },
-            \       'webp':         { 'guifg': '#2dcc9f', 'ctermfg': '43'   },
-            \       'xcplayground': { 'guifg': '#f88535', 'ctermfg': '208'  },
-            \       'xul':          { 'guifg': '#f1662a', 'ctermfg': '202'  },
-            \       'yaml':         { 'guifg': '#ffe885', 'ctermfg': '222'  },
-            \       'yml':          { 'guifg': '#ffe885', 'ctermfg': '222'  },
-            \       'zsh':          { 'guifg': '#d9b400', 'ctermfg': '178'  },
-            \   }
-            \}
-
 function! s:InitCommandMap(var, dict)
     if !exists(a:var)
         exec 'let '.a:var.'='.string(a:dict)
@@ -584,6 +347,17 @@ endfunction
 
 call s:InitCommandMap('g:Lf_CommandMap', s:Lf_CommandMap)
 
+function! leaderf#execute(cmd)
+    if exists('*execute')
+        return execute(a:cmd)
+    else
+        redir => l:output
+        silent! execute a:cmd
+        redir END
+        return l:output
+    endif
+endfunction
+
 function! leaderf#versionCheck()
     if g:Lf_PythonVersion == 2 && pyeval("sys.version_info < (2, 7)")
         echohl Error
@@ -611,88 +385,62 @@ endfunction
 " return the visually selected text and quote it with double quote
 function! leaderf#visual() abort
     try
-        let x_save = @x
+        let x_save = getreg("x", 1)
+        let type = getregtype("x")
         norm! gv"xy
         return '"' . escape(@x, '"') . '"'
     finally
-        let @x = x_save
+        call setreg("x", x_save, type)
     endtry
 endfunction
 
 function! leaderf#popupModePreviewFilter(winid, key) abort
-    let key = get(g:Lf_KeyDict, get(g:Lf_KeyMap, a:key, a:key), a:key)
-    if key ==? "<ESC>"
-        call popup_close(a:winid)
-        redraw
-        return 1
-    elseif key ==? "<CR>"
-        call popup_close(a:winid)
-        " https://github.com/vim/vim/issues/5216
-        "redraw
-        return 0
-    elseif key ==? "<LeftMouse>" && has('patch-8.1.2266')
-        " v:mouse_winid is always 0 in popup window(fixed in vim 8.1.2292)
-        " the below workaround can make v:mouse_winid have the value
-        if v:mouse_winid == 0
-            silent! call feedkeys("\<LeftMouse>", "n")
-            silent! call getchar()
-        endif
+    let key = get(g:Lf_KeyMap, a:key, a:key)
+    if key ==? "<LeftMouse>"
+        if exists("*getmousepos")
+            let pos = getmousepos()
+            if pos.winid == a:winid
+                call win_execute(pos.winid, "call cursor([pos.line, pos.column])")
+                redraw
+                return 1
+            endif
+        elseif has('patch-8.1.2266')
+            " v:mouse_winid is always 0 in popup window(fixed in vim 8.1.2292)
+            " the below workaround can make v:mouse_winid have the value
+            if v:mouse_winid == 0
+                silent! call feedkeys("\<LeftMouse>", "n")
+                silent! call getchar()
+            endif
 
-        "echom v:mouse_winid v:mouse_lnum v:mouse_col v:mouse_win
-        " in normal window, v:mouse_lnum and v:mouse_col are always 0 after getchar()
-        if v:mouse_winid == a:winid
-            call win_execute(a:winid, "exec v:mouse_lnum")
-            call win_execute(a:winid, "exec 'norm!'.v:mouse_col.'|'")
+            "echom v:mouse_winid v:mouse_lnum v:mouse_col v:mouse_win
+            " in normal window, v:mouse_lnum and v:mouse_col are always 0 after getchar()
+            if v:mouse_winid == a:winid
+                call win_execute(a:winid, "exec v:mouse_lnum")
+                call win_execute(a:winid, "exec 'norm!'.v:mouse_col.'|'")
+                redraw
+                return 1
+            else
+                noautocmd call popup_close(a:winid)
+                call win_execute(v:mouse_winid, "exec v:mouse_lnum")
+                call win_execute(v:mouse_winid, "exec 'norm!'.v:mouse_col.'|'")
+                redraw
+                return 1
+            endif
+        endif
+    elseif key ==? "<ScrollWheelUp>" && exists("*getmousepos")
+        let pos = getmousepos()
+        if pos.winid == a:winid
+            call win_execute(a:winid, "norm! 3\<C-Y>")
             redraw
             return 1
-        else
-            call popup_close(a:winid)
-            call win_execute(v:mouse_winid, "exec v:mouse_lnum")
-            call win_execute(v:mouse_winid, "exec 'norm!'.v:mouse_col.'|'")
+        endif
+    elseif key ==? "<ScrollWheelDown>" && exists("*getmousepos")
+        let pos = getmousepos()
+        if pos.winid == a:winid
+            call win_execute(a:winid, "norm! 3\<C-E>")
             redraw
             return 1
         endif
-    elseif key ==? "<ScrollWheelUp>"
-        call win_execute(a:winid, "norm! 3k")
-        redraw
-        return 1
-    elseif key ==? "<ScrollWheelDown>"
-        call win_execute(a:winid, "norm! 3j")
-        redraw
-        return 1
-    endif
-    return 0
-endfunction
-
-function! leaderf#normalModePreviewFilter(winid, key) abort
-    let key = get(g:Lf_KeyDict, get(g:Lf_KeyMap, a:key, a:key), a:key)
-    if key ==? "<ESC>"
-        call popup_close(a:winid)
-        redraw
-        return 1
-    elseif key ==? "<CR>"
-        call popup_close(a:winid)
-        " https://github.com/vim/vim/issues/5216
-        "redraw
-        return 0
-    elseif key ==? "<LeftMouse>" && has('patch-8.1.2266')
-        return 0
-    elseif key ==? "<ScrollWheelUp>"
-        call win_execute(a:winid, "norm! 3k")
-        redraw
-        return 1
-    elseif key ==? "<ScrollWheelDown>"
-        call win_execute(a:winid, "norm! 3j")
-        redraw
-        return 1
-    elseif key ==? "<C-Up>"
-        call win_execute(a:winid, "norm! k")
-        redraw
-        return 1
-    elseif key ==? "<C-Down>"
-        call win_execute(a:winid, "norm! j")
-        redraw
-        return 1
     endif
     return 0
 endfunction
@@ -701,23 +449,63 @@ function! leaderf#PopupFilter(winid, key) abort
     return 0
 endfunction
 
+function! leaderf#RemapKey(id, key) abort
+    exec g:Lf_py "import ctypes"
+
+    let normal_map = get(g:, 'Lf_NormalCommandMap', {})
+    let key_map = get(normal_map, '*', {})
+    let category = g:Lf_PyEval(printf("ctypes.cast(%d, ctypes.py_object).value._getExplorer().getStlCategory()", a:id))
+    for [old, new] in items(get(normal_map, category, {}))
+        let has_key = 0
+        for [k, v] in items(key_map)
+            if old =~ '\m<.\{-}>' && old ==? k
+                let key_map[k] = new
+                let has_key = 1
+                break
+            endif
+        endfor
+        if has_key == 0
+            let key_map[old] = new
+        endif
+    endfor
+
+    let key = a:key
+    let is_old = 0
+    let is_new = 0
+    for [old, new] in items(key_map)
+        if key =~ '\m<.\{-}>' && key ==? new || key ==# new
+            let key = old
+            let is_new = 1
+        endif
+        if key =~ '\m<.\{-}>' && key ==? old || key ==# old
+            let is_old = 1
+        endif
+    endfor
+
+    if is_old && is_new == 0
+        let key = ''
+    endif
+
+    return key
+endfunction
+
 function! leaderf#NormalModeFilter(id, winid, key) abort
     exec g:Lf_py "import ctypes"
 
-    let key = get(g:Lf_KeyDict, get(g:Lf_KeyMap, a:key, a:key), a:key)
+    let key = leaderf#RemapKey(a:id, get(g:Lf_KeyMap, a:key, a:key))
 
     if key !=# "g"
         call win_execute(a:winid, printf("let g:Lf_%d_is_g_pressed = 0", a:id))
     endif
 
     if key ==# "j" || key ==? "<Down>"
-        call win_execute(a:winid, "norm! j")
+        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.move('j')", a:id)
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._cli._buildPopupPrompt()", a:id)
         "redraw
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._getInstance().refreshPopupStatusline()", a:id)
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._previewResult(False)", a:id)
     elseif key ==# "k" || key ==? "<Up>"
-        call win_execute(a:winid, "norm! k")
+        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.move('k')", a:id)
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._cli._buildPopupPrompt()", a:id)
         "redraw
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._getInstance().refreshPopupStatusline()", a:id)
@@ -754,24 +542,49 @@ function! leaderf#NormalModeFilter(id, winid, key) abort
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._cli._buildPopupPrompt()", a:id)
         redraw
     elseif key ==? "<LeftMouse>"
-        if has('patch-8.1.2266')
+        if exists("*getmousepos")
+            let pos = getmousepos()
+            if pos.winid == a:winid
+                call win_execute(pos.winid, "call cursor([pos.line, pos.column])")
+                exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._cli._buildPopupPrompt()", a:id)
+                exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._previewResult(False)", a:id)
+                redraw
+                return 1
+            else
+                return 0
+            endif
+        elseif has('patch-8.1.2266')
             call win_execute(a:winid, "exec v:mouse_lnum")
             call win_execute(a:winid, "exec 'norm!'.v:mouse_col.'|'")
             exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._cli._buildPopupPrompt()", a:id)
             redraw
             exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._previewResult(False)", a:id)
         endif
-    elseif key ==? "<ScrollWheelUp>"
-        call win_execute(a:winid, "norm! 3k")
-        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._cli._buildPopupPrompt()", a:id)
-        redraw
-        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._getInstance().refreshPopupStatusline()", a:id)
-    elseif key ==? "<ScrollWheelDown>"
-        call win_execute(a:winid, "norm! 3j")
-        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._cli._buildPopupPrompt()", a:id)
-        redraw
-        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._getInstance().refreshPopupStatusline()", a:id)
-    elseif key ==# "q" || key ==? "<ESC>"
+    elseif key ==? "<ScrollWheelUp>" && exists("*getmousepos")
+        let pos = getmousepos()
+        if pos.winid == a:winid
+            call win_execute(a:winid, "norm! 3\<C-Y>")
+            exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._cli._buildPopupPrompt()", a:id)
+            exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._getInstance().refreshPopupStatusline()", a:id)
+            exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._previewResult(False)", a:id)
+            redraw
+            return 1
+        else
+            return 0
+        endif
+    elseif key ==? "<ScrollWheelDown>" && exists("*getmousepos")
+        let pos = getmousepos()
+        if pos.winid == a:winid
+            call win_execute(a:winid, "norm! 3\<C-E>")
+            exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._cli._buildPopupPrompt()", a:id)
+            exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._getInstance().refreshPopupStatusline()", a:id)
+            exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._previewResult(False)", a:id)
+            redraw
+            return 1
+        else
+            return 0
+        endif
+    elseif key ==# "q"
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.quit()", a:id)
     elseif key ==# "i" || key ==? "<Tab>"
         call leaderf#ResetPopupOptions(a:winid, 'filter', 'leaderf#PopupFilter')
@@ -784,12 +597,6 @@ function! leaderf#NormalModeFilter(id, winid, key) abort
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.accept('v')", a:id)
     elseif key ==# "t"
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.accept('t')", a:id)
-    elseif key ==# "s"
-        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.addSelections()", a:id)
-    elseif key ==# "a"
-        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.selectAll()", a:id)
-    elseif key ==# "c"
-        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.clearSelections()", a:id)
     elseif key ==# "p"
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._previewResult(True)", a:id)
     elseif key ==? "<F1>"
@@ -798,6 +605,8 @@ function! leaderf#NormalModeFilter(id, winid, key) abort
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._toUpInPopup()", a:id)
     elseif key ==? "<C-Down>"
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value._toDownInPopup()", a:id)
+    elseif key ==? "<ESC>"
+        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.closePreviewPopupOrQuit()", a:id)
     endif
 
     return 1
@@ -807,13 +616,26 @@ function! leaderf#PopupClosed(id_list, manager_id, winid, result) abort
     " result is -1 if CTRL-C was pressed,
     if a:result == -1
         exec g:Lf_py "import ctypes"
+        exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.is_ctrl_c = True", a:manager_id)
         exec g:Lf_py printf("ctypes.cast(%d, ctypes.py_object).value.quit()", a:manager_id)
         for id in a:id_list
             if id != a:winid
-                call popup_close(id)
+                noautocmd call popup_close(id)
             endif
         endfor
     endif
+endfunction
+
+function! leaderf#Quit(manager_id) abort
+exec g:Lf_py "<< EOF"
+import ctypes
+manager = ctypes.cast(int(vim.eval("a:manager_id")), ctypes.py_object).value
+if manager.is_ctrl_c == False:
+    manager.is_autocmd = True
+    manager.quit()
+    manager.is_autocmd = False
+manager.is_ctrl_c = False
+EOF
 endfunction
 
 function! leaderf#ResetPopupOptions(winid, option, value) abort
@@ -839,8 +661,9 @@ function! leaderf#matchaddpos(group, pos) abort
     endfor
 endfunction
 
-function! leaderf#closeAllFloatwin(input_win_id, content_win_id, statusline_win_id, show_statusline) abort
+function! leaderf#closeAllFloatwin(input_win_id, content_win_id, statusline_win_id, show_statusline, id) abort
     if winbufnr(a:input_win_id) == -1
+        silent! call nvim_win_close(g:Lf_PreviewWindowID[a:id], 0)
         silent! call nvim_win_close(a:content_win_id, 0)
         if a:show_statusline
             silent! call nvim_win_close(a:statusline_win_id, 0)
@@ -849,6 +672,7 @@ function! leaderf#closeAllFloatwin(input_win_id, content_win_id, statusline_win_
             autocmd!
         augroup end
     elseif winbufnr(a:content_win_id) == -1
+        silent! call nvim_win_close(g:Lf_PreviewWindowID[a:id], 0)
         silent! call nvim_win_close(a:input_win_id, 0)
         if a:show_statusline
             silent! call nvim_win_close(a:statusline_win_id, 0)
@@ -857,6 +681,7 @@ function! leaderf#closeAllFloatwin(input_win_id, content_win_id, statusline_win_
             autocmd!
         augroup end
     elseif a:show_statusline && winbufnr(a:statusline_win_id) == -1
+        silent! call nvim_win_close(g:Lf_PreviewWindowID[a:id], 0)
         silent! call nvim_win_close(a:input_win_id, 0)
         silent! call nvim_win_close(a:content_win_id, 0)
         augroup Lf_Floatwin_Close
@@ -868,8 +693,10 @@ endfunction
 autocmd FileType leaderf let b:coc_enabled = 0 | let b:coc_suggest_disable = 1
 
 
-" for devicons
-autocmd OptionSet ambiwidth call leaderf#setAmbiwidth(v:option_new)
+if exists("##OptionSet")
+    " for devicons
+    autocmd OptionSet ambiwidth call leaderf#setAmbiwidth(v:option_new)
+endif
 
 function! leaderf#setAmbiwidth(val) abort
     exec g:Lf_py "from leaderf.devicons import setAmbiwidth"

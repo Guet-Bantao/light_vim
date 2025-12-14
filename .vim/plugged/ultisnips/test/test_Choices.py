@@ -7,6 +7,7 @@ class Choices_WillBeExpandedToInlineSelection(_VimTest):
     keys = "test" + EX
     wanted = "1.red|2.gray"
 
+
 class Choices_ExpectCorrectResult(_VimTest):
     snippets = ("test", "${1|red,gray|}")
     keys = "test" + EX + "2"
@@ -100,10 +101,13 @@ class Choices_With_Mirror_ContinueMirroring_EvenAfterSelectionDone(_VimTest):
 class Choices_ShouldThrowErrorWithZeroTabstop(_VimTest):
     snippets = ("test", "${0|red,blue|}")
     keys = "test" + EX
-    expected_error = "Choices selection is not supported on \$0"
+    expected_error = r"Choices selection is not supported on \$0"
 
 
 class Choices_CanEscapeCommaInsideChoiceItem(_VimTest):
-    snippets = ("test", r"${1|fun1(,fun2(param1\, ,fun3(param1\, param2\, |}param_end) result: $1")
+    snippets = (
+        "test",
+        r"${1|fun1(,fun2(param1\, ,fun3(param1\, param2\, |}param_end) result: $1",
+    )
     keys = "test" + EX + "2"
     wanted = "fun2(param1, param_end) result: fun2(param1, "

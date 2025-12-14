@@ -38,6 +38,8 @@ class SelfExplorer(Explorer):
             '19 LeaderfFiletype         "navigate the filetype"',
             '20 LeaderfCommand          "execute built-in/user-defined Ex commands"',
             '21 LeaderfWindow           "search windows"',
+            '22 LeaderfQuickFix         "navigate quickfix"',
+            '23 LeaderfLocList          "navigate location list"',
             ]
 
     def getContent(self, *args, **kwargs):
@@ -52,7 +54,7 @@ class SelfExplorer(Explorer):
         return "Self"
 
     def getStlCurDir(self):
-        return escQuote(lfEncode(os.getcwd()))
+        return escQuote(lfEncode(lfGetCwd()))
 
 
 #*****************************************************
@@ -75,8 +77,8 @@ class SelfExplManager(Manager):
         cmd = line.split(None, 2)[1]
         try:
             lfCmd(cmd)
-        except vim.error as e:
-            lfPrintError(e)
+        except vim.error:
+            lfPrintTraceback()
 
     def _getDigest(self, line, mode):
         """
@@ -127,18 +129,18 @@ class SelfExplManager(Manager):
     def _afterEnter(self):
         super(SelfExplManager, self)._afterEnter()
         if self._getInstance().getWinPos() == 'popup':
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_selfIndex'', ''^\d\+'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_selfIndex'', ''^\d\+'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_selfDescription'', '' \zs".*"$'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_selfDescription'', '' \zs".*"$'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
         else:
-            id = int(lfEval('''matchadd('Lf_hl_selfIndex', '^\d\+')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_selfIndex', '^\d\+')'''))
             self._match_ids.append(id)
-            id = int(lfEval('''matchadd('Lf_hl_selfDescription', ' \zs".*"$')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_selfDescription', ' \zs".*"$')'''))
             self._match_ids.append(id)
 
     def _beforeExit(self):

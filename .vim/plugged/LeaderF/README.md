@@ -6,8 +6,8 @@ An efficient fuzzy finder that helps to locate files, buffers, mrus, gtags, etc.
  - Written in Python.
  - Support fuzzy and regex searching.
  - Full-featured.
- - [Well-designed fuzzy matching algorithm](https://github.com/Yggdroot/testFuzzyMatch).
- - [Extensible](https://github.com/Yggdroot/LeaderF-marks).
+ - Well-designed fuzzy matching algorithm.
+ - [Extensible](https://github.com/Yggdroot/LeaderF/wiki/Extensions).
 
 Changelog
 ---------
@@ -19,6 +19,11 @@ Wiki
 
 [Wiki](https://github.com/Yggdroot/LeaderF/wiki).
 
+Extensions
+----------
+
+A list of community extensions can be found in the [Extensions](https://github.com/Yggdroot/LeaderF/wiki/Extensions) wiki.
+
 Screenshots
 -----------
 
@@ -29,58 +34,37 @@ Screenshots
 Requirements
 ------------
 
- - vim7.3 or higher. Only support vim7.4.330 or higher after [v1.01](https://github.com/Yggdroot/LeaderF/releases/tag/v1.01).
+ - vim7.3 or higher. Only support 7.4.1126+ after [v1.01](https://github.com/Yggdroot/LeaderF/releases/tag/v1.01).
  - Python2.7+ or Python3.1+.
- - To use the popup mode, neovim 0.42+ or vim 8.1.1615+ are required.
+ - To use the popup mode, neovim 0.5.0+ or vim 8.1.1615+ are required.
 
 Installation
 ------------
 
-To install this plugin just put the plugin files in your `~/.vim` (Linux) or `~/vimfiles` (Windows).<br>
-For [Vundle][3] user, just add `Plugin 'Yggdroot/LeaderF'` to your `.vimrc`.
+For [vim-plug][5] user:
+
+```vim
+Plug 'Yggdroot/LeaderF', { 'do': ':LeaderfInstallCExtension' }
+```
 
 Performance
 -----------
 
-LeaderF is already very fast. If you want better performance, install the C extension of the fuzzy matching algorithm, which is more than 10 times faster.  
-To install the C extension, follow the below:
+LeaderF is already very fast. If you'd like better performance, install the C extension of the fuzzy matching algorithm, which is more than 10 times faster.  
+To install the C extension, firstly, make sure `python2` and/or `python3` commands are available on Linux/Unix/MacOS and `py -2` and/or `py -3` commands are available on Windows.
 
- - On Linux/Unix/MacOS:
-
-    First, make sure `python2` and/or `python3` commands are available.  
-    Then run the installation script:
-
-    ```sh
-    cd ~/.vim/bundle/LeaderF
-    ./install.sh
+ - Install the C extension
+    ```vim
+    :LeaderfInstallCExtension
     ```
-    Uninstall the C extension:
-
-        ./install.sh --reverse
-
-    If you are using [vim-plug][5]:
-
-        Plug 'Yggdroot/LeaderF', { 'do': './install.sh' }
-
- - On Windows:
-
-    First, make sure `py -2` and/or `py -3` commands are available.  
-    Then run the installation script:
-
-    ```sh
-    cd ~\.vim\bundle\LeaderF
-    .\install.bat
-    ```
-    There may be some error during the installation, please google the error messages to resolve it.  
+    There may be some errors during the installation, please google the error messages to resolve it.  
     For example, `"error: Unable to find vcvarsall.bat"`, you can turn to [here][6] for help.
 
-    Uninstall the C extension:
 
-        .\install.bat --reverse
-
-    If you are using [vim-plug][5]:
-
-        Plug 'Yggdroot/LeaderF', { 'do': '.\install.bat' }
+- Uninstall the C extension
+    ```vim
+    :LeaderfUninstallCExtension
+    ```
 
 After running any command of LeaderF, check the value of `echo g:Lf_fuzzyEngine_C`, if the value is 1, it means the C extension is loaded sucessfully.
 
@@ -91,9 +75,11 @@ Usage
 usage: Leaderf[!] [-h] [--reverse] [--stayOpen] [--input <INPUT> | --cword]
                   [--top | --bottom | --left | --right | --belowright | --aboveleft | --fullScreen | --popup]
                   [--nameOnly | --fullPath | --fuzzy | --regexMode] [--nowrap] [--next | --previous]
-                  [--recall] [--popup-height <POPUP_HEIGHT>] [--popup-width <POPUP_WIDTH>]
+                  [--recall] [--popup-height <POPUP_HEIGHT>] [--popup-width <POPUP_WIDTH>] [--no-sort]
+                  [--case-insensitive] [--auto-preview | --no-auto-preview]
                   
-                  {file,tag,function,mru,searchHistory,cmdHistory,help,line,colorscheme,gtags,self,bufTag,buffer,rg,filetype,command,window}
+                  {file,tag,function,mru,searchHistory,cmdHistory,help,line,colorscheme,gtags,
+                      self,bufTag,buffer,rg,filetype,command,window,quickfix,loclist,jumps}
                   ...
 
 optional arguments:
@@ -122,10 +108,15 @@ optional arguments:
                         specifies the maximum height of popup window, only available in popup mode.
   --popup-width <POPUP_WIDTH>
                         specifies the width of popup window, only available in popup mode.
+  --no-sort             do not sort the result.
+  --case-insensitive    fuzzy search case insensitively.
+  --auto-preview        open preview window automatically.
+  --no-auto-preview     don't open preview window automatically.
 
 subcommands:
 
-  {file,tag,function,mru,searchHistory,cmdHistory,help,line,colorscheme,gtags,self,bufTag,buffer,rg,filetype,command,window}
+  {file,tag,function,mru,searchHistory,cmdHistory,help,line,colorscheme,gtags,
+      self,bufTag,buffer,rg,filetype,command,window,quickfix,loclist,jumps}
     file                search files
     tag                 navigate tags using the tags file
     function            navigate functions or methods in the buffer
@@ -143,6 +134,8 @@ subcommands:
     filetype            navigate the filetype
     command             execute built-in/user-defined Ex commands.
     window              search windows.
+    quickfix            navigate the quickfix.
+    loclist             navigate the location list.
 
 If [!] is given, enter normal mode directly.
 ```
@@ -167,6 +160,7 @@ Once LeaderF is launched:
 | `<C-X>`                    | open in horizontal split window
 | `<C-]>`                    | open in vertical split window
 | `<C-T>`                    | open in new tabpage
+| `<C-\>`                    | show a prompt enable to choose split window method: vertical, horizontal, tabpage, etc
 | `<F5>`                     | refresh the cache
 | `<C-LeftMouse>`<br>`<C-S>` | select multiple files
 | `<S-LeftMouse>`            | select consecutive multiple files
@@ -241,12 +235,6 @@ or add `--popup` after each subcommand, e.g.,
 Leaderf file --popup
 ```
 
-It's better to set
-```vim
-let g:Lf_PreviewInPopup = 1
-```
-, so that you can also preview the result in a popup window.
-
 Customization
 -------------
 
@@ -295,7 +283,7 @@ Customization
 
     e.g. `let g:Lf_ShortcutF = '<C-P>'`
 
- * Show icons
+ * Show icons (should install fonts from https://github.com/ryanoasis/nerd-fonts)
 
     Support commands: buffer,file,mru,window
 
@@ -303,7 +291,7 @@ Customization
     " Show icons, icons are shown by default
     let g:Lf_ShowDevIcons = 1
     " For GUI vim, the icon font can be specify like this, for example
-    let g:Lf_DevIconsFont = "DejaVuSansMono Nerd Font Mono"
+    let g:Lf_DevIconsFont = "DroidSansM Nerd Font Mono"
     " If needs
     set ambiwidth=double
     ```
@@ -320,7 +308,6 @@ let g:Lf_UseVersionControlTool = 0
 let g:Lf_IgnoreCurrentBufferName = 1
 " popup mode
 let g:Lf_WindowPosition = 'popup'
-let g:Lf_PreviewInPopup = 1
 let g:Lf_StlSeparator = { 'left': "\ue0b0", 'right': "\ue0b2", 'font': "DejaVu Sans Mono for Powerline" }
 let g:Lf_PreviewResult = {'Function': 0, 'BufTag': 0 }
 
@@ -346,11 +333,22 @@ noremap <leader>fn :<C-U><C-R>=printf("Leaderf gtags --next %s", "")<CR><CR>
 noremap <leader>fp :<C-U><C-R>=printf("Leaderf gtags --previous %s", "")<CR><CR>
 ```
 
+FAQ
+---
+
+https://github.com/Yggdroot/LeaderF/issues?q=label%3AFAQ+
+
 License
 -------
 
 This plugin is released under the Apache License, Version 2.0 (the "License").
 
+:heart: Sponsor
+-------
+
+If you like this software, please consider buying me a coffee.  
+https://github.com/Yggdroot/SponsorMe/blob/main/README.md#donate
+(捐赠的朋友最好备注一下自己的ID）
 
   [1]: https://github.com/Yggdroot/Images/blob/master/leaderf/leaderf_popup.gif
   [2]: https://github.com/Yggdroot/Images/blob/master/leaderf/leaderf_2.gif

@@ -19,13 +19,14 @@
 
 #include "mystdint.h"
 
-#define MIN_WEIGHT (-10000.0f)
+#define MIN_WEIGHT (-1000000.0f)
 
 typedef struct PatternContext
 {
     const char* pattern;
     int64_t pattern_mask[256];
     uint16_t pattern_len;
+    uint16_t actual_pattern_len;
     uint8_t is_lower;
 }PatternContext;
 

@@ -16,7 +16,7 @@ from .manager import *
 from .asyncExecutor import AsyncExecutor
 
 
-"""
+r"""
 let g:Lf_Extensions = {
     \ "apple": {
     \       "source": [], "grep -r '%s' *", funcref (arguments), {"command": "ls" or funcref(arguments)}
@@ -28,13 +28,13 @@ let g:Lf_Extensions = {
     \       "format_list": funcref ([], arguments),
     \       "need_exit": funcref (line, arguments),
     \       "accept": funcref (line, arguments),
-    \       "preview": funcref (orig_buf_nr, orig_cursor, arguments),
+    \       "preview": funcref (orig_buf_num, orig_cursor, arguments),
     \       "supports_name_only": 0,
     \       "get_digest": funcref (line, mode),
     \       "before_enter": funcref (arguments),
-    \       "after_enter": funcref (orig_buf_nr, orig_cursor, arguments),
-    \       "bang_enter": funcref (orig_buf_nr, orig_cursor, arguments),
-    \       "before_exit": funcref (orig_buf_nr, orig_cursor, arguments),
+    \       "after_enter": funcref (orig_buf_num, orig_cursor, arguments),
+    \       "bang_enter": funcref (orig_buf_num, orig_cursor, arguments),
+    \       "before_exit": funcref (orig_buf_num, orig_cursor, arguments),
     \       "after_exit": funcref (arguments),
     \       "highlights_def": {
     \               "Lf_hl_apple": '^\s*\zs\d\+',
@@ -72,7 +72,7 @@ class AnyExplorer(Explorer):
     def getContent(self, *args, **kwargs):
         source = self._config.get("source")
         if not source:
-            return None
+            return []
 
         if isinstance(source, list):
             result = source
@@ -142,7 +142,7 @@ class AnyExplorer(Explorer):
 
         if sys.version_info >= (3, 0):
             if isinstance(result, list) and result and isinstance(result[0], bytes):
-                result = [lfBytes2Str(i) for i in result]
+                result = [lfBytes2Str(i, lfEval("&encoding")) for i in result]
 
         return result
 
@@ -150,7 +150,7 @@ class AnyExplorer(Explorer):
         return self._category
 
     def getStlCurDir(self):
-        return escQuote(lfEncode(os.getcwd()))
+        return escQuote(lfEncode(lfGetCwd()))
 
     def supportsNameOnly(self):
         return bool(int(self._config.get("supports_name_only", False)))
@@ -275,15 +275,15 @@ class AnyExplManager(Manager):
         super(AnyExplManager, self)._afterEnter()
         after_enter = self._config.get("after_enter")
         if after_enter:
-            orig_buf_nr = self._getInstance().getOriginalPos()[2].number
+            orig_buf_num = self._getInstance().getOriginalPos()[2].number
             line, col = self._getInstance().getOriginalCursor()
             try:
                 if self._getInstance().getWinPos() == 'popup':
                     lfCmd("""call win_execute(%d, "call %s(%d, [%d, %d], %s)")"""
-                            % (self._getInstance().getPopupWinId(), after_enter, orig_buf_nr, line, col+1, str(self._arguments)))
+                            % (self._getInstance().getPopupWinId(), after_enter, orig_buf_num, line, col+1, str(self._arguments)))
                 else:
                     after_enter = lfFunction(after_enter)
-                    after_enter(orig_buf_nr, [line, col+1], self._arguments)
+                    after_enter(orig_buf_num, [line, col+1], self._arguments)
             except vim.error as err:
                 raise Exception("Error occurred in user defined %s: %s" % (str(after_enter), err))
 
@@ -321,15 +321,15 @@ class AnyExplManager(Manager):
         super(AnyExplManager, self)._bangEnter()
         bang_enter = self._config.get("bang_enter")
         if bang_enter:
-            orig_buf_nr = self._getInstance().getOriginalPos()[2].number
+            orig_buf_num = self._getInstance().getOriginalPos()[2].number
             line, col = self._getInstance().getOriginalCursor()
             try:
                 if self._getInstance().getWinPos() == 'popup':
                     lfCmd("""call win_execute(%d, "call %s(%d, [%d, %d], %s)")"""
-                            % (self._getInstance().getPopupWinId(), bang_enter, orig_buf_nr, line, col+1, str(self._arguments)))
+                            % (self._getInstance().getPopupWinId(), bang_enter, orig_buf_num, line, col+1, str(self._arguments)))
                 else:
                     bang_enter = lfFunction(bang_enter)
-                    bang_enter(orig_buf_nr, [line, col+1], self._arguments)
+                    bang_enter(orig_buf_num, [line, col+1], self._arguments)
             except vim.error as err:
                 raise Exception("Error occurred in user defined %s: %s" % (str(bang_enter), err))
 
@@ -337,15 +337,15 @@ class AnyExplManager(Manager):
         super(AnyExplManager, self)._beforeExit()
         before_exit = self._config.get("before_exit")
         if before_exit:
-            orig_buf_nr = self._getInstance().getOriginalPos()[2].number
+            orig_buf_num = self._getInstance().getOriginalPos()[2].number
             line, col = self._getInstance().getOriginalCursor()
             try:
                 if self._getInstance().getWinPos() == 'popup':
                     lfCmd("""call win_execute(%d, "call %s(%d, [%d, %d], %s)")"""
-                            % (self._getInstance().getPopupWinId(), before_exit, orig_buf_nr, line, col+1, str(self._arguments)))
+                            % (self._getInstance().getPopupWinId(), before_exit, orig_buf_num, line, col+1, str(self._arguments)))
                 else:
                     before_exit = lfFunction(before_exit)
-                    before_exit(orig_buf_nr, [line, col+1], self._arguments)
+                    before_exit(orig_buf_num, [line, col+1], self._arguments)
             except vim.error as err:
                 raise Exception("Error occurred in user defined %s: %s" % (str(before_exit), err))
 
@@ -367,18 +367,29 @@ class AnyExplManager(Manager):
         super(AnyExplManager, self).startExplorer(win_pos, *args, **kwargs)
 
     def _previewInPopup(self, *args, **kwargs):
+        if len(args) == 0 or args[0] == '':
+            return
+
         line = args[0]
 
         preview = self._config.get("preview")
         if preview:
-            orig_buf_nr = self._getInstance().getOriginalPos()[2].number
+            orig_buf_num = self._getInstance().getOriginalPos()[2].number
             l, c = self._getInstance().getOriginalCursor()
             try:
                 preview = lfFunction(preview)
-                result = preview(orig_buf_nr, [l, c+1], line, self._arguments)
+                result = preview(orig_buf_num, [l, c+1], line, self._arguments)
                 if result:
-                    buf_number, line_num, jump_cmd = result
-                    self._createPopupPreview("", buf_number, line_num, lfBytes2Str(jump_cmd) if not self._has_nvim else jump_cmd)
+                    filename, line_num, jump_cmd = result
+                    # for backward compatibility
+                    if isinstance(filename, int): # it is a buffer number
+                        lfCmd("silent call bufload(%d)" % filename)
+                    else:
+                        if not self._has_nvim:  # py3 in nvim return str, in vim return bytes
+                            filename = lfBytes2Str(filename)
+                        if lfEval("bufloaded('%s')" % escQuote(filename)) == '1':
+                            filename = int(lfEval("bufnr('%s')" % escQuote(filename))) # actually, it's a buffer number
+                    self._createPopupPreview("", filename, line_num, lfBytes2Str(jump_cmd) if not self._has_nvim else jump_cmd)
             except vim.error as err:
                 raise Exception("Error occurred in user defined %s: %s" % (str(preview), err))
 
@@ -698,6 +709,23 @@ class AnyHub(object):
             elif category == "window":
                 from .windowExpl import windowExplManager
                 manager = windowExplManager
+            elif category == "quickfix":
+                from .qfloclistExpl import qfloclistExplManager
+                manager = qfloclistExplManager
+                kwargs["list_type"] = "quickfix"
+            elif category == "loclist":
+                from .qfloclistExpl import qfloclistExplManager
+                manager = qfloclistExplManager
+                kwargs["list_type"] = "loclist"
+            elif category == "jumps":
+                from .jumpsExpl import jumpsExplManager
+                manager = jumpsExplManager
+            elif category == "git":
+                from .gitExpl import gitExplManager
+                manager = gitExplManager
+            elif category == "coc":
+                from .cocExpl import cocExplManager
+                manager = cocExplManager
             else:
                 import ctypes
                 manager_id = lfFunction(lfEval("g:Lf_PythonExtensions['%s'].manager_id" % category))()
@@ -721,10 +749,13 @@ class AnyHub(object):
             arguments["win_pos"] = win_pos[2:]
 
         if "--cword" in arguments:
-            kwargs["pattern"] = lfEval("expand('<cword>')")
+            arguments["--input"]= [lfEval("expand('<cword>')")]
 
         kwargs["arguments"] = arguments
         kwargs["positional_args"] = positional_args
+
+        if lfEval("has('patch-8.1.1615') || has('nvim-0.5.0')") == '0':
+            win_pos = "--bottom"
 
         manager.startExplorer(win_pos[2:], *args, **kwargs)
 
@@ -751,11 +782,39 @@ class AnyHub(object):
                     parser = subparsers.add_parser(category, usage=gtags_usage, formatter_class=LfHelpFormatter, help=help, epilog="If [!] is given, enter normal mode directly.")
                 else:
                     parser = subparsers.add_parser(category, help=help, formatter_class=LfHelpFormatter, epilog="If [!] is given, enter normal mode directly.")
-                group = parser.add_argument_group('specific arguments')
-                self._add_argument(group, arg_def, positional_args)
 
-                group = parser.add_argument_group("common arguments")
-                self._add_argument(group, lfEval("g:Lf_CommonArguments"), positional_args)
+                if category == 'git':
+                    alias_dict = lfEval("g:Lf_GitAlias")
+                else:
+                    alias_dict = {}
+
+                if isinstance(arg_def, dict):
+                    subsubparsers = parser.add_subparsers(title="subcommands", description="", help="")
+                    group = parser.add_argument_group("common arguments")
+                    self._add_argument(group, lfEval("g:Lf_CommonArguments"), positional_args)
+                    for command, args in arg_def.items():
+                        help = lfEval("g:Lf_Helps").get(category + "-" + command, "")
+                        subparser = subsubparsers.add_parser(command, help=help, formatter_class=LfHelpFormatter)
+                        group = subparser.add_argument_group('specific arguments')
+                        self._add_argument(group, args, positional_args)
+
+                        group = subparser.add_argument_group("common arguments")
+                        self._add_argument(group, lfEval("g:Lf_CommonArguments"), positional_args)
+
+                        alias = alias_dict.get(command, None)
+                        if alias is not None:
+                            subparser = subsubparsers.add_parser(alias, help=help, formatter_class=LfHelpFormatter)
+                            group = subparser.add_argument_group('specific arguments')
+                            self._add_argument(group, args, positional_args)
+
+                            group = subparser.add_argument_group("common arguments")
+                            self._add_argument(group, lfEval("g:Lf_CommonArguments"), positional_args)
+                else:
+                    group = parser.add_argument_group('specific arguments')
+                    self._add_argument(group, arg_def, positional_args)
+
+                    group = parser.add_argument_group("common arguments")
+                    self._add_argument(group, lfEval("g:Lf_CommonArguments"), positional_args)
 
                 parser.set_defaults(start=partial(self._default_action, category, positional_args))
 

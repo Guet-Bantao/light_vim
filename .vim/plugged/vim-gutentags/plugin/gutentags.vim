@@ -51,8 +51,10 @@ let g:gutentags_project_info = get(g:, 'gutentags_project_info', [])
 call add(g:gutentags_project_info, {'type': 'python', 'file': 'setup.py'})
 call add(g:gutentags_project_info, {'type': 'ruby', 'file': 'Gemfile'})
 
+let g:gutentags_exclude_project_root = get(g:, 'gutentags_exclude_project_root', 
+            \['/usr/local', '/opt/homebrew', '/home/linuxbrew/.linuxbrew'])
+
 let g:gutentags_exclude_filetypes = get(g:, 'gutentags_exclude_filetypes', [])
-let g:gutentags_exclude_project_root = get(g:, 'gutentags_exclude_project_root', ['/usr/local'])
 let g:gutentags_resolve_symlinks = get(g:, 'gutentags_resolve_symlinks', 0)
 let g:gutentags_generate_on_new = get(g:, 'gutentags_generate_on_new', 1)
 let g:gutentags_generate_on_missing = get(g:, 'gutentags_generate_on_missing', 1)
@@ -98,6 +100,7 @@ augroup gutentags_detect
     autocmd BufNewFile,BufReadPost *  call gutentags#setup_gutentags()
     autocmd VimEnter               *  if expand('<amatch>')==''|call gutentags#setup_gutentags()|endif
     autocmd VimLeavePre            *  call gutentags#on_vim_leave_pre()
+    autocmd VimLeave               *  call gutentags#on_vim_leave()
 augroup end
 
 " }}}

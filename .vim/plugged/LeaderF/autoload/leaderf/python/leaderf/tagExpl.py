@@ -52,7 +52,7 @@ class TagExplorer(Explorer):
         return 'Tag'
 
     def getStlCurDir(self):
-        return escQuote(lfEncode(os.getcwd()))
+        return escQuote(lfEncode(lfGetCwd()))
 
 
 #*****************************************************
@@ -78,14 +78,18 @@ class TagExplManager(Manager):
         tagaddress = res[0]
         try:
             if kwargs.get("mode", '') == 't':
-                lfCmd("tab drop %s" % escSpecial(tagfile))
+                if lfEval("get(g:, 'Lf_JumpToExistingWindow', 1)") == '1' and lfEval("bufloaded('%s')" % escQuote(tagfile)) == '1':
+                    lfDrop('tab', tagfile)
+                else:
+                    lfCmd("tabe %s" % escSpecial(tagfile))
             else:
-                if lfEval("get(g:, 'Lf_JumpToExistingWindow', 0)") == '1':
-                    lfCmd("hide drop %s" % escSpecial(tagfile))
+                if lfEval("get(g:, 'Lf_JumpToExistingWindow', 1)") == '1' and lfEval("bufloaded('%s')" % escQuote(tagfile)) == '1':
+                    lfDrop('', tagfile)
                 else:
                     lfCmd("hide edit %s" % escSpecial(tagfile))
         except vim.error as e: # E37
-            lfPrintError(e)
+            if 'E325' not in str(e).split(':'):
+                lfPrintTraceback()
 
         if tagaddress[0] not in '/?':
             lfCmd(tagaddress)
@@ -94,26 +98,29 @@ class TagExplManager(Manager):
 
             # In case there are mutiple matches.
             if len(res) > 1:
-                result = re.search('(?<=\t)line:\d+', res[1])
+                result = re.search(r'(?<=\t)line:\d+', res[1])
                 if result:
-                    line_nr = result.group(0).split(':')[1]
-                    lfCmd(line_nr)
+                    line_num = result.group(0).split(':')[1]
+                    lfCmd(line_num)
                 else: # for c, c++
                     keyword = "(class|enum|struct|union)"
-                    result = re.search('(?<=\t)%s:\S+' % keyword, res[1])
+                    result = re.search(r'(?<=\t)%s:\S+' % keyword, res[1])
                     if result:
                         tagfield = result.group(0).split(":")
                         name = tagfield[0]
                         value = tagfield[-1]
-                        lfCmd("call search('\m%s\_s\+%s\_[^;{]*{', 'w')" % (name, value))
+                        lfCmd(r"call search('\m%s\_s\+%s\_[^;{]*{', 'w')" % (name, value))
 
-            pattern = "\M" + tagaddress[1:-1]
+            pattern = r"\M" + tagaddress[1:-1]
             lfCmd("call search('%s', 'w')" % escQuote(pattern))
 
-        if lfEval("search('\V%s', 'wc')" % escQuote(tagname)) == '0':
+        if lfEval(r"search('\V%s', 'wc')" % escQuote(tagname)) == '0':
             lfCmd("norm! ^")
         lfCmd("norm! zv")
         lfCmd("norm! zz")
+
+        if "preview" not in kwargs:
+            lfCmd("setlocal cursorline! | redraw | sleep 150m | setlocal cursorline!")
 
         if vim.current.window not in self._cursorline_dict:
             self._cursorline_dict[vim.current.window] = vim.current.window.options["cursorline"]
@@ -156,28 +163,28 @@ class TagExplManager(Manager):
     def _afterEnter(self):
         super(TagExplManager, self)._afterEnter()
         if self._getInstance().getWinPos() == 'popup':
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_tagFile'', ''^.\{-}\t\zs.\{-}\ze\t'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_tagFile'', ''^.\{-}\t\zs.\{-}\ze\t'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_tagType'', '';"\t\zs[cdefFgmpstuv]\ze\(\t\|$\)'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_tagType'', '';"\t\zs[cdefFgmpstuv]\ze\(\t\|$\)'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
             keyword = ["namespace", "class", "enum", "file", "function", "kind", "struct", "union"]
             for i in keyword:
-                lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_tagKeyword'', ''\(;"\t.\{-}\)\@<=%s:'')')"""
+                lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_tagKeyword'', ''\(;"\t.\{-}\)\@<=%s:'')')"""
                     % (self._getInstance().getPopupWinId(), i))
                 id = int(lfEval("matchid"))
                 self._match_ids.append(id)
         else:
-            id = int(lfEval('''matchadd('Lf_hl_tagFile', '^.\{-}\t\zs.\{-}\ze\t')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_tagFile', '^.\{-}\t\zs.\{-}\ze\t')'''))
             self._match_ids.append(id)
-            id = int(lfEval('''matchadd('Lf_hl_tagType', ';"\t\zs[cdefFgmpstuv]\ze\(\t\|$\)')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_tagType', ';"\t\zs[cdefFgmpstuv]\ze\(\t\|$\)')'''))
             self._match_ids.append(id)
             keyword = ["namespace", "class", "enum", "file", "function", "kind", "struct", "union"]
             for i in keyword:
-                id = int(lfEval('''matchadd('Lf_hl_tagKeyword', '\(;"\t.\{-}\)\@<=%s:')''' % i))
+                id = int(lfEval(r'''matchadd('Lf_hl_tagKeyword', '\(;"\t.\{-}\)\@<=%s:')''' % i))
                 self._match_ids.append(id)
 
     def _beforeExit(self):
@@ -186,6 +193,54 @@ class TagExplManager(Manager):
             if k.valid:
                 k.options["cursorline"] = v
         self._cursorline_dict.clear()
+
+    def _bangEnter(self):
+        super(TagExplManager, self)._bangEnter()
+
+        instance = self._getInstance()
+        if instance.isLastReverseOrder():
+            instance.window.cursor = (min(instance.cursorRow, len(instance.buffer)), 0)
+        else:
+            instance.window.cursor = (instance.cursorRow, 0)
+
+        if instance.getWinPos() == 'popup':
+            lfCmd("call win_execute(%d, 'setlocal cursorline')" % instance.getPopupWinId())
+        elif instance.getWinPos() == 'floatwin':
+            lfCmd("call nvim_win_set_option(%d, 'cursorline', v:true)" % instance.getPopupWinId())
+        else:
+            instance.window.options["cursorline"] = True
+
+    def _previewInPopup(self, *args, **kwargs):
+        if len(args) == 0 or args[0] == '':
+            return
+
+        line = args[0]
+        # {tagname}<Tab>{tagfile}<Tab>{tagaddress}[;"<Tab>{tagfield}..]
+        tagname, tagfile, right = line.split('\t', 2)
+        res = right.split(';"\t', 1)
+        tagaddress = res[0]
+        if tagaddress[0] not in '/?':
+            self._createPopupPreview("", tagfile, tagaddress)
+        else:
+            # In case there are mutiple matches.
+            if len(res) > 1:
+                result = re.search(r'(?<=\t)line:\d+', res[1])
+                if result:
+                    line_num = result.group(0).split(':')[1]
+                    self._createPopupPreview("", tagfile, line_num)
+                else: # for c, c++
+                    keyword = "(class|enum|struct|union)"
+                    result = re.search(r'(?<=\t)%s:\S+' % keyword, res[1])
+                    jump_cmd = 'exec "norm! gg"'
+                    if result:
+                        tagfield = result.group(0).split(":")
+                        name = tagfield[0]
+                        value = tagfield[-1]
+                        jump_cmd += r" | call search('\m%s\_s\+%s\_[^;{]*{', 'w')" % (name, value)
+
+                    pattern = r"\M" + tagaddress[1:-1]
+                    jump_cmd += " | call search('%s', 'w')" % escQuote(pattern)
+                    self._createPopupPreview("", tagfile, 0, jump_cmd)
 
 
 #*****************************************************
