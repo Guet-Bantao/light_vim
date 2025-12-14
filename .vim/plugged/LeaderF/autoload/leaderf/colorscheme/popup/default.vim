@@ -18,12 +18,17 @@ if &background ==? 'dark'
     highlight def Lf_hl_popup_inputText guifg=#87ceeb guibg=#4d4d4d gui=NONE ctermfg=117 ctermbg=239 cterm=NONE
 
     " Lf_hl_popup_window is the wincolor of content window
-    highlight def Lf_hl_popup_window guifg=#eeeeee guibg=#404040 gui=NONE ctermfg=255 ctermbg=237 cterm=NONE
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_popup_window", "Normal")
 
     " Lf_hl_popup_blank is the wincolor of statusline window
-    highlight def Lf_hl_popup_blank guifg=NONE guibg=#4b4e50 gui=NONE ctermbg=239 cterm=NONE
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_popup_blank", "StatusLineNC")
 
-    highlight def link Lf_hl_popup_cursor Cursor
+    " nvim has a weird bug, if `hi Cursor cterm=reverse gui=reverse`
+    " and `hi def link Lf_hl_popup_cursor Cursor`, the bug occurs.
+    call leaderf#colorscheme#popup#link_cursor("Lf_hl_popup_cursor")
+
+    call leaderf#colorscheme#popup#link_two("Lf_hl_popupBorder", "Normal", "VertSplit", 1)
+
     highlight def Lf_hl_popup_prompt guifg=#ffcd4a guibg=NONE gui=NONE ctermfg=221 ctermbg=NONE cterm=NONE
     highlight def Lf_hl_popup_spin guifg=#e6e666 guibg=NONE gui=NONE ctermfg=185 ctermbg=NONE cterm=NONE
     highlight def Lf_hl_popup_normalMode guifg=#333300 guibg=#c1ce96 gui=bold ctermfg=58 ctermbg=187 cterm=bold
@@ -42,10 +47,10 @@ if &background ==? 'dark'
     highlight def Lf_hl_cursorline guifg=Yellow guibg=NONE gui=NONE ctermfg=226 ctermbg=NONE cterm=NONE
 
     " the color of matching character
-    highlight def Lf_hl_match  guifg=SpringGreen guibg=NONE gui=bold ctermfg=85 ctermbg=NONE cterm=bold
+    highlight def Lf_hl_match  guifg=#afff5f guibg=NONE gui=bold ctermfg=155 ctermbg=NONE cterm=bold
 
     " the color of matching character in `And mode`
-    highlight def Lf_hl_match0 guifg=SpringGreen guibg=NONE gui=bold ctermfg=85 ctermbg=NONE cterm=bold
+    highlight def Lf_hl_match0 guifg=#afff5f guibg=NONE gui=bold ctermfg=155 ctermbg=NONE cterm=bold
     highlight def Lf_hl_match1 guifg=#fe8019 guibg=NONE gui=bold ctermfg=208 ctermbg=NONE cterm=bold
     highlight def Lf_hl_match2 guifg=#3ff5d1 guibg=NONE gui=bold ctermfg=50 ctermbg=NONE cterm=bold
     highlight def Lf_hl_match3 guifg=#ff7272 guibg=NONE gui=bold ctermfg=203 ctermbg=NONE cterm=bold
@@ -115,17 +120,84 @@ if &background ==? 'dark'
     highlight def Lf_hl_gtagsHighlight guifg=#000000 guibg=#cccc66 gui=NONE ctermfg=16 ctermbg=185 cterm=NONE
 
     highlight def link Lf_hl_previewTitle       Statusline
+
+    highlight def link Lf_hl_winNumber          Constant
+    highlight def link Lf_hl_winIndicators      Statement
+    highlight def link Lf_hl_winModified        String
+    highlight def link Lf_hl_winNomodifiable    Comment
+    highlight def link Lf_hl_winDirname         Directory
+    highlight def link Lf_hl_quickfixFileName   Directory
+    highlight def link Lf_hl_quickfixLineNumber Constant
+    highlight def link Lf_hl_quickfixColumnNumber Constant
+    highlight def link Lf_hl_loclistFileName    Directory
+    highlight def link Lf_hl_loclistLineNumber  Constant
+    highlight def link Lf_hl_loclistColumnNumber Constant
+
+    highlight def link Lf_hl_jumpsTitle         Title
+    highlight def link Lf_hl_jumpsNumber        Number
+    highlight def link Lf_hl_jumpsLineCol       String
+    highlight def link Lf_hl_jumpsIndicator     Type
+
+    highlight def Lf_hl_gitDiffModification guifg=#87afff guibg=NONE gui=NONE ctermfg=111 ctermbg=NONE cterm=NONE
+    highlight def Lf_hl_gitDiffAddition guifg=#a8e332 guibg=NONE gui=NONE ctermfg=148 ctermbg=NONE cterm=NONE
+    highlight def Lf_hl_gitDiffDeletion guifg=#ff477e guibg=NONE gui=NONE ctermfg=204 ctermbg=NONE cterm=NONE
+    highlight def link Lf_hl_gitHash            Identifier
+    highlight def link Lf_hl_gitRefNames        Special
+    highlight def link Lf_hl_gitFolder          Directory
+    highlight def link Lf_hl_gitTitle           Label
+    highlight def link Lf_hl_gitFilesNum        Number
+    highlight def link Lf_hl_gitFolderIcon      Special
+    highlight def link Lf_hl_gitAddIcon         Lf_hl_gitDiffAddition
+    highlight def link Lf_hl_gitCopyIcon        Number
+    highlight def link Lf_hl_gitDelIcon         Lf_hl_gitDiffDeletion
+    highlight def link Lf_hl_gitModifyIcon      Lf_hl_gitDiffModification
+    highlight def link Lf_hl_gitRenameIcon      Constant
+    highlight def link Lf_hl_gitNumStatAdd      Lf_hl_gitDiffAddition
+    highlight def link Lf_hl_gitNumStatDel      Lf_hl_gitDiffDeletion
+    highlight def link Lf_hl_gitNumStatBinary   Constant
+    highlight def link Lf_hl_gitHelp            Comment
+    call leaderf#colorscheme#popup#link_two("Lf_hl_gitStlChangedNum", "StatusLine", "Number", 1)
+    highlight def link Lf_hl_gitStlFileChanged  StatusLine
+    call leaderf#colorscheme#popup#link_two("Lf_hl_gitStlAdd", "StatusLine", "Lf_hl_gitDiffAddition", 1)
+    call leaderf#colorscheme#popup#link_two("Lf_hl_gitStlDel", "StatusLine", "Lf_hl_gitDiffDeletion", 1)
+    if has('nvim')
+        highlight Lf_hl_gitStlChangedNum gui=nocombine cterm=nocombine
+        highlight Lf_hl_gitStlAdd gui=nocombine cterm=nocombine
+        highlight Lf_hl_gitStlDel gui=nocombine cterm=nocombine
+    endif
+    highlight def link Lf_hl_gitStatPath        Directory
+    highlight def link Lf_hl_gitStatNumber      Number
+    highlight def link Lf_hl_gitStatPlus        Lf_hl_gitNumStatAdd
+    highlight def link Lf_hl_gitStatMinus       Lf_hl_gitNumStatDel
+    highlight def link Lf_hl_gitGraph1          Statement
+    highlight def link Lf_hl_gitGraph2          String
+    highlight def link Lf_hl_gitGraph3          Special
+    highlight def link Lf_hl_gitGraph4          Lf_hl_gitGraph1
+    highlight def link Lf_hl_gitGraphSlash      Constant
+    highlight def link Lf_hl_gitBlameDate       Number
+    highlight def link Lf_hl_gitSelectedOption  Tag
+    highlight def link Lf_hl_gitNonSelectedOption Comment
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_gitDiffAdd", "DiffAdd")
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_gitDiffDelete", "DiffDelete")
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_gitDiffChange", "DiffChange")
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_gitDiffText", "DiffText")
+    highlight def link Lf_hl_gitInlineBlame Comment
 else
     " Lf_hl_popup_inputText is the wincolor of input window
     highlight def Lf_hl_popup_inputText guifg=#525252 guibg=#f4f3d7 gui=NONE ctermfg=239 ctermbg=230 cterm=NONE
 
     " Lf_hl_popup_window is the wincolor of content window
-    highlight def Lf_hl_popup_window guifg=#4d4d4d guibg=#fafbff gui=NONE ctermfg=239 ctermbg=231 cterm=NONE
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_popup_window", "Normal")
 
     " Lf_hl_popup_blank is the wincolor of statusline window
-    highlight def Lf_hl_popup_blank guifg=NONE guibg=#eeecc1 gui=NONE ctermbg=230 cterm=NONE
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_popup_blank", "StatusLineNC")
 
-    highlight def link Lf_hl_popup_cursor Cursor
+    " nvim has a weird bug, if `hi Cursor cterm=reverse gui=reverse`
+    " and `hi def link Lf_hl_popup_cursor Cursor`, the bug occurs.
+    call leaderf#colorscheme#popup#link_cursor("Lf_hl_popup_cursor")
+
+    call leaderf#colorscheme#popup#link_two("Lf_hl_popupBorder", "Normal", "VertSplit", 1)
+
     highlight def Lf_hl_popup_prompt guifg=#c77400 guibg=NONE gui=NONE ctermfg=172 cterm=NONE
     highlight def Lf_hl_popup_spin guifg=#f12d2d guibg=NONE gui=NONE ctermfg=196 cterm=NONE
     highlight def Lf_hl_popup_normalMode guifg=#808000 guibg=#ccc88e gui=bold ctermfg=100 ctermbg=186 cterm=bold
@@ -217,4 +289,66 @@ else
     highlight def Lf_hl_gtagsHighlight guifg=#4d4d4d guibg=#cccc66 gui=NONE ctermfg=239 ctermbg=185 cterm=NONE
 
     highlight def link Lf_hl_previewTitle       Statusline
+
+    highlight def link Lf_hl_winNumber          Constant
+    highlight def link Lf_hl_winIndicators      Statement
+    highlight def link Lf_hl_winModified        String
+    highlight def link Lf_hl_winNomodifiable    Comment
+    highlight def link Lf_hl_winDirname         Directory
+    highlight def link Lf_hl_quickfixFileName   Directory
+    highlight def link Lf_hl_quickfixLineNumber Constant
+    highlight def link Lf_hl_quickfixColumnNumber Constant
+    highlight def link Lf_hl_loclistFileName    Directory
+    highlight def link Lf_hl_loclistLineNumber  Constant
+    highlight def link Lf_hl_loclistColumnNumber Constant
+
+    highlight def link Lf_hl_jumpsTitle         Title
+    highlight def link Lf_hl_jumpsNumber        Number
+    highlight def link Lf_hl_jumpsLineCol       String
+    highlight def link Lf_hl_jumpsIndicator     Type
+
+    highlight def Lf_hl_gitDiffModification guifg=#5f87af guibg=NONE gui=NONE ctermfg=67 ctermbg=NONE cterm=NONE
+    highlight def Lf_hl_gitDiffAddition guifg=#008700 guibg=NONE gui=NONE ctermfg=28 ctermbg=NONE cterm=NONE
+    highlight def Lf_hl_gitDiffDeletion guifg=#df0000 guibg=NONE gui=NONE ctermfg=160 ctermbg=NONE cterm=NONE
+    highlight def link Lf_hl_gitHash            Identifier
+    highlight def link Lf_hl_gitRefNames        Special
+    highlight def link Lf_hl_gitFolder          Directory
+    highlight def link Lf_hl_gitTitle           Label
+    highlight def link Lf_hl_gitFilesNum        Number
+    highlight def link Lf_hl_gitFolderIcon      Special
+    highlight def link Lf_hl_gitAddIcon         Lf_hl_gitDiffAddition
+    highlight def link Lf_hl_gitCopyIcon        Number
+    highlight def link Lf_hl_gitDelIcon         Lf_hl_gitDiffDeletion
+    highlight def link Lf_hl_gitModifyIcon      Lf_hl_gitDiffModification
+    highlight def link Lf_hl_gitRenameIcon      Constant
+    highlight def link Lf_hl_gitNumStatAdd      Lf_hl_gitDiffAddition
+    highlight def link Lf_hl_gitNumStatDel      Lf_hl_gitDiffDeletion
+    highlight def link Lf_hl_gitNumStatBinary   Constant
+    highlight def link Lf_hl_gitHelp            Comment
+    call leaderf#colorscheme#popup#link_two("Lf_hl_gitStlChangedNum", "StatusLine", "Number", 1)
+    highlight def link Lf_hl_gitStlFileChanged  StatusLine
+    call leaderf#colorscheme#popup#link_two("Lf_hl_gitStlAdd", "StatusLine", "Lf_hl_gitDiffAddition", 1)
+    call leaderf#colorscheme#popup#link_two("Lf_hl_gitStlDel", "StatusLine", "Lf_hl_gitDiffDeletion", 1)
+    if has('nvim')
+        highlight Lf_hl_gitStlChangedNum gui=nocombine cterm=nocombine
+        highlight Lf_hl_gitStlAdd gui=nocombine cterm=nocombine
+        highlight Lf_hl_gitStlDel gui=nocombine cterm=nocombine
+    endif
+    highlight def link Lf_hl_gitStatPath        Directory
+    highlight def link Lf_hl_gitStatNumber      Number
+    highlight def link Lf_hl_gitStatPlus        Lf_hl_gitNumStatAdd
+    highlight def link Lf_hl_gitStatMinus       Lf_hl_gitNumStatDel
+    highlight def link Lf_hl_gitGraph1          Statement
+    highlight def link Lf_hl_gitGraph2          String
+    highlight def link Lf_hl_gitGraph3          Special
+    highlight def link Lf_hl_gitGraph4          Lf_hl_gitGraph1
+    highlight def link Lf_hl_gitGraphSlash      Constant
+    highlight def link Lf_hl_gitBlameDate       Number
+    highlight def link Lf_hl_gitSelectedOption  Tag
+    highlight def link Lf_hl_gitNonSelectedOption Comment
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_gitDiffAdd", "DiffAdd")
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_gitDiffDelete", "DiffDelete")
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_gitDiffChange", "DiffChange")
+    call leaderf#colorscheme#popup#link_no_reverse("Lf_hl_gitDiffText", "DiffText")
+    highlight def link Lf_hl_gitInlineBlame Comment
 endif

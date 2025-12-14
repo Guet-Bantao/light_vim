@@ -27,6 +27,16 @@ function! leaderf#Any#Maps(category)
     nnoremap <buffer> <silent> i             :exec g:Lf_py b:Lf_AnyExplManager."input()"<CR>
     nnoremap <buffer> <silent> <Tab>         :exec g:Lf_py b:Lf_AnyExplManager."input()"<CR>
     nnoremap <buffer> <silent> <F1>          :exec g:Lf_py b:Lf_AnyExplManager."toggleHelp()"<CR>
+    nnoremap <buffer> <silent> p             :exec g:Lf_py b:Lf_AnyExplManager."_previewResult(True)"<CR>
+    nnoremap <buffer> <silent> j             :<C-U>exec g:Lf_py b:Lf_AnyExplManager."moveAndPreview('j')"<CR>
+    nnoremap <buffer> <silent> k             :<C-U>exec g:Lf_py b:Lf_AnyExplManager."moveAndPreview('k')"<CR>
+    nnoremap <buffer> <silent> <Up>          :<C-U>exec g:Lf_py b:Lf_AnyExplManager."moveAndPreview('Up')"<CR>
+    nnoremap <buffer> <silent> <Down>        :<C-U>exec g:Lf_py b:Lf_AnyExplManager."moveAndPreview('Down')"<CR>
+    nnoremap <buffer> <silent> <PageUp>      :<C-U>exec g:Lf_py b:Lf_AnyExplManager."moveAndPreview('PageUp')"<CR>
+    nnoremap <buffer> <silent> <PageDown>    :<C-U>exec g:Lf_py b:Lf_AnyExplManager."moveAndPreview('PageDown')"<CR>
+    nnoremap <buffer> <silent> <C-Up>        :exec g:Lf_py b:Lf_AnyExplManager."_toUpInPopup()"<CR>
+    nnoremap <buffer> <silent> <C-Down>      :exec g:Lf_py b:Lf_AnyExplManager."_toDownInPopup()"<CR>
+    nnoremap <buffer> <silent> <Esc>         :exec g:Lf_py b:Lf_AnyExplManager."closePreviewPopupOrQuit()"<CR>
     if has_key(g:Lf_NormalMap, a:category)
         for i in g:Lf_NormalMap[a:category]
             exec 'nnoremap <buffer> <silent> '.i[0].' '.i[1]
@@ -52,12 +62,21 @@ let g:Lf_Helps = {
             \ "filetype":       "navigate the filetype",
             \ "command":        "execute built-in/user-defined Ex commands",
             \ "window":         "search windows",
+            \ "quickfix":       "navigate quickfix",
+            \ "loclist":        "navigate location list",
+            \ "jumps":          "navigate jumps list",
+            \ "git":            "use git",
+            \ "git-status":     "show git status",
+            \ "git-log":        "show the commit logs",
+            \ "git-diff":       "show changes between commits, commit and working tree, etc",
+            \ "git-blame":      "show what revision and author last modified each line of a file",
+            \ "coc":            "execute coc's commands",
             \ }
 
 let g:Lf_Arguments = {
             \ "file":[
             \           [
-            \               {"name": ["directory"], "nargs": "?", "help": "serarch files under <directory>"},
+            \               {"name": ["directory"], "nargs": "*", "help": "serarch files under <directory>"},
             \               {"name": ["--file"], "nargs": "+", "help": "read file list from the specified file."},
             \           ],
             \           {"name": ["--no-ignore"], "nargs": 0, "help": "don't respect ignore files (.gitignore, .ignore, etc.)."},
@@ -67,8 +86,13 @@ let g:Lf_Arguments = {
             \           {"name": ["--tabpage"], "nargs": 0, "help": "search buffers in current tabpage"},
             \   ],
             \ "mru":[
-            \           {"name": ["--cwd"], "nargs": 0, "help": "search MRU in current working directory"},
+            \           [
+            \               {"name": ["--cwd"], "nargs": 0, "help": "search MRU in current working directory"},
+            \               {"name": ["--project"], "nargs": 0, "help": "search MRU in the project"},
+            \           ],
             \           {"name": ["--no-split-path"], "nargs": 0, "help": "do not split the path"},
+            \           {"name": ["--absolute-path"], "nargs": 0, "help": "show absolute path"},
+            \           {"name": ["--frecency"], "nargs": 0, "help": "enable the frecency algorithm"},
             \   ],
             \ "tag":[],
             \ "bufTag":[
@@ -90,9 +114,14 @@ let g:Lf_Arguments = {
             \           {"name": ["-B", "--before-context"], "nargs": 1, "metavar": "<NUM>", "help": "Show NUM lines before each match."},
             \           {"name": ["-C", "--context"], "nargs": 1, "metavar": "<NUM>", "help": "Show NUM lines before and after each match."},
             \           {"name": ["--context-separator"], "nargs": 1, "metavar": "<SEPARATOR>", "help": "The string used to separate non-contiguous context lines in the output."},
+            \           {"name": ["--crlf"], "nargs": 0, "help": "ripgrep will treat CRLF ('\r\n') as a line terminator instead of just '\n'."},
+            \           {"name": ["-a", "--text"], "nargs": 0, "help": "Search binary files as if they were text."},
             \           {"name": ["-e", "--regexp"], "action": "append", "metavar": "<PATTERN>...",
             \               "help": "A pattern to search for. This option can be provided multiple times, where all patterns given are searched."},
-            \           {"name": ["-F", "--fixed-strings"], "nargs": 0, "help": "Treat the pattern as a literal string instead of a regular expression."},
+            \           [
+            \               {"name": ["-F", "--fixed-strings"], "nargs": 0, "help": "Treat the pattern as a literal string instead of a regular expression."},
+            \               {"name": ["--no-fixed-strings"], "nargs": 0, "help": "Treat the pattern as a regular expression."},
+            \           ],
             \           {"name": ["-i", "--ignore-case"], "nargs": 0, "help": "Searches case insensitively."},
             \           {"name": ["-L", "--follow"], "nargs": 0, "help": "Follow symbolic links while traversing directories."},
             \           {"name": ["-P", "--pcre2"], "nargs": 0, "help": "When this flag is present, rg will use the PCRE2 regex engine instead of its default regex engine."},
@@ -101,7 +130,10 @@ let g:Lf_Arguments = {
             \           {"name": ["-v", "--invert-match"], "nargs": 0, "help": "Invert matching. Show lines that do not match the given patterns."},
             \           {"name": ["-w", "--word-regexp"], "nargs": 0, "help": "Only show matches surrounded by word boundaries. This is roughly equivalent to putting \\b before and after all of the search patterns."},
             \           {"name": ["-x", "--line-regexp"], "nargs": 0, "help": "Only show matches surrounded by line boundaries."},
+            \           {"name": ["--binary"], "nargs": 0, "help": "Enabling this flag will cause ripgrep to search binary files."},
+            \           {"name": ["--column"], "nargs": 0, "help": "Show column numbers (1-based). This only shows the column numbers for the first match on each line."},
             \           {"name": ["--hidden"], "nargs": 0, "help": "Search hidden files and directories. By default, hidden files and directories are skipped."},
+            \           {"name": ["--heading"], "nargs": 0, "help": "Prints the file path above clusters of matches from each file instead of printing the file path as a prefix for each matched line."},
             \           {"name": ["--no-config"], "nargs": 0, "help": "Never read configuration files. When this flag is present, rg will not respect the RIPGREP_CONFIG_PATH environment variable."},
             \           {"name": ["--no-ignore"], "nargs": 0, "help": "Don't respect ignore files (.gitignore, .ignore, etc.). This implies --no-ignore-parent and --no-ignore-vcs."},
             \           {"name": ["--no-ignore-global"], "nargs": 0,
@@ -113,6 +145,8 @@ let g:Lf_Arguments = {
             \           {"name": ["-E", "--encoding"], "nargs": 1, "metavar": "<ENCODING>", "help": "Specify the text encoding that rg will use on all files searched."},
             \           {"name": ["-M", "--max-columns"], "nargs": 1, "metavar": "<NUM>", "help": "Don't print lines longer than this limit in bytes."},
             \           {"name": ["-m", "--max-count"], "nargs": 1, "metavar": "<NUM>", "help": "Limit the number of matching lines per file searched to NUM."},
+            \           {"name": ["-U", "--multiline"], "nargs": 0, "help": "Enable matching across multiple lines."},
+            \           {"name": ["--multiline-dotall"], "nargs": 0, "help": "This flag enables 'dot all' in your regex pattern, which causes '.' to match newlines when multiline searching is enabled."},
             \           {"name": ["--max-depth"], "nargs": 1, "metavar": "<NUM>", "help": "Limit the depth of directory traversal to NUM levels beyond the paths given."},
             \           {"name": ["--max-filesize"], "nargs": 1, "metavar": "<NUM+SUFFIX?>", "help": "Ignore files larger than NUM in size. This does not apply to directories."},
             \           {"name": ["--path-separator"], "nargs": 1, "metavar": "<SEPARATOR>", "help": "Set the path separator to use when printing file paths."},
@@ -141,6 +175,7 @@ let g:Lf_Arguments = {
             \           {"name": ["--append"], "nargs": 0, "help": "Append to the previous search results."},
             \           {"name": ["--match-path"], "nargs": 0, "help": "Match the file path when fuzzy searching."},
             \           {"name": ["--wd-mode"], "nargs": 1, "metavar": "<MODE>", "help": "Specify the working directory mode, value has the same meaning as g:Lf_WorkingDirectoryMode."},
+            \           {"name": ["--live"], "nargs": 0, "help": "Perform the so called live grep. This option implies `-F`"},
             \   ],
             \ "gtags":[
             \           [
@@ -173,12 +208,98 @@ let g:Lf_Arguments = {
             \           ],
             \           {"name": ["--result"], "nargs": 1, "choices": ["ctags", "ctags-x", "ctags-mod"], "metavar": "<FORMAT>", "help": "Show result using format, which may be one of: `ctags`(default), `ctags-x`,  `ctags-mod`."},
             \           {"name": ["--auto-jump"], "nargs": "?", "metavar": "<TYPE>", "help": "Jump to the tag directly when there is only one match. <TYPE> can be 'h', 'v' or 't', which mean jump to a horizontally, vertically split window, or a new tabpage respectively. If <TYPE> is omitted, jump to a position in current window."},
+            \           {"name": ["--debug"], "nargs": 0, "help": "debug mode, some useful messages will be printed."},
             \   ],
             \ "filetype": [],
             \ "command": [
             \           {"name": ["--run-immediately"], "nargs": 0, "help": "Immediately execute the command on the current line in the result window"},
             \   ],
-            \ "window": []
+            \ "window": [],
+            \ "quickfix": [],
+            \ "loclist": [],
+            \ "jumps": [],
+            \ "git":{
+            \       "log": [
+            \           [
+            \               {"name": ["--current-file"], "nargs": 0, "help": "show logs of current file"},
+            \               {"name": ["--current-line"], "nargs": 0, "help": "show logs of current line"},
+            \           ],
+            \           [
+            \               {"name": ["--directly"], "nargs": 0, "help": "output the logs directly"},
+            \               {"name": ["--explorer"], "nargs": 0, "help": "view changed files of one commit in a tree explorer"},
+            \           ],
+            \           {"name": ["--position"], "nargs": 1, "choices": ["top", "right", "bottom", "left"], "metavar": "<POSITION>",
+            \               "help": "specifies the position of the logs window"},
+            \           {"name": ["--navigation-position"], "nargs": 1, "choices": ["top", "right", "bottom", "left"], "metavar": "<POSITION>",
+            \               "help": "specifies the position of the navigation panel"},
+            \           [
+            \               {"name": ["-s", "--side-by-side"], "nargs": 0, "help": "show diffs in a side-by-side view"},
+            \               {"name": ["-u", "--unified"], "nargs": 0, "help": "show diffs in a unified view"},
+            \           ],
+            \           {"name": ["-n", "--max-count"], "nargs": 1, "metavar": "<number>", "help": "Limit the number of commits to output."},
+            \           {"name": ["--skip"], "nargs": 1, "metavar": "<number>", "help": "Skip number commits before starting to show the commit output."},
+            \           {"name": ["--since", "--after"], "nargs": 1, "metavar": "<date>", "help": "Show commits more recent than a specific date."},
+            \           {"name": ["--until", "--before"], "nargs": 1, "metavar": "<date>", "help": "Show commits older than a specific date."},
+            \           {"name": ["--author"], "nargs": 1, "metavar": "<pattern>", "help": "Limit the commits output to ones with author header lines that match the specified pattern (regular expression)."},
+            \           {"name": ["--committer"], "nargs": 1, "metavar": "<pattern>", "help": "Limit the commits output to ones with committer header lines that match the specified pattern (regular expression)."},
+            \           {"name": ["--no-merges"], "nargs": 0, "help": "Do not print commits with more than one parent."},
+            \           {"name": ["--all"], "nargs": 0, "help": "Pretend as if all the refs in refs/, along with HEAD, are listed on the command line as <commit>."},
+            \           {"name": ["--graph"], "nargs": 0, "help": "Draw a text-based graphical representation of the commit history on the left hand side of the output."},
+            \           {"name": ["--reverse-order"], "nargs": 0, "help": "Output the commits chosen to be shown in reverse order."},
+            \           {"name": ["--find-copies-harder"], "nargs": 0, "help": "This flag makes the command inspect unmodified files as candidates for the source of copy."},
+            \           {"name": ["extra"], "nargs": "*", "help": "extra arguments of git log"},
+            \       ],
+            \       "diff": [
+            \           {"name": ["--cached", "--staged"], "nargs": 0, "help": "run 'git diff --cached'"},
+            \           [
+            \               {"name": ["--directly"], "nargs": 0, "help": "output the diffs directly"},
+            \               {"name": ["--explorer"], "nargs": 0, "help": "view changed files in a tree explorer"},
+            \           ],
+            \           {"name": ["--position"], "nargs": 1, "choices": ["top", "right", "bottom", "left"], "metavar": "<POSITION>",
+            \               "help": "specifies the position of the diffs window"},
+            \           {"name": ["--navigation-position"], "nargs": 1, "choices": ["top", "right", "bottom", "left"], "metavar": "<POSITION>",
+            \               "help": "specifies the position of the navigation panel"},
+            \           [
+            \               {"name": ["-s", "--side-by-side"], "nargs": 0, "help": "show diffs in a side-by-side view"},
+            \               {"name": ["-u", "--unified"], "nargs": 0, "help": "show diffs in a unified view"},
+            \           ],
+            \           {"name": ["--with"], "nargs": "?", "metavar": "<REVISION>", "help": "Compare the current working tree with <REVISION>. If <REVISION> is omitted, pop up the revisions to select one."},
+            \           {"name": ["--current-file"], "nargs": 0, "help": "show diffs of current file"},
+            \           {"name": ["extra"], "nargs": "*", "help": "extra arguments of git diff"},
+            \       ],
+            \       "blame": [
+            \           {"name": ["-w"], "nargs": 0, "help": "Ignore whitespace when comparing the parent’s version and the child’s to find where the lines came from."},
+            \           {"name": ["--date"], "nargs": 1, "choices": ["relative", "local", "iso", "iso-strict", "rfc", "short", "default"],
+            \               "metavar": "<format>", "help": "Specifies the format used to output dates. .i.e, git blame --date=<format>. <format> can be one of ['relative', 'local', 'iso', 'iso-strict', 'rfc', 'short', 'default']"},
+            \           {"name": ["--inline"], "nargs": 0, "help": "Display inline git blame information."},
+            \       ],
+            \       "status": [
+            \           {"name": ["--navigation-position"], "nargs": 1, "choices": ["top", "right", "bottom", "left"], "metavar": "<POSITION>",
+            \               "help": "specifies the position of the navigation panel"},
+            \           [
+            \               {"name": ["-s", "--side-by-side"], "nargs": 0, "help": "show diffs in a side-by-side view"},
+            \               {"name": ["-u", "--unified"], "nargs": 0, "help": "show diffs in a unified view"},
+            \           ],
+            \       ],
+            \   },
+            \ "coc":{
+            \       "definitions": [
+            \           {"name": ["--auto-jump"], "nargs": "?", "metavar": "<TYPE>", "help": "Jump to the target directly when there is only one match. <TYPE> can be 'h', 'v' or 't', which mean jump to a horizontally, vertically split window, or a new tabpage respectively. If <TYPE> is omitted, jump to a position in current window."},
+            \       ],
+            \       "declarations": [
+            \           {"name": ["--auto-jump"], "nargs": "?", "metavar": "<TYPE>", "help": "Jump to the target directly when there is only one match. <TYPE> can be 'h', 'v' or 't', which mean jump to a horizontally, vertically split window, or a new tabpage respectively. If <TYPE> is omitted, jump to a position in current window."},
+            \       ],
+            \       "implementations": [
+            \           {"name": ["--auto-jump"], "nargs": "?", "metavar": "<TYPE>", "help": "Jump to the target directly when there is only one match. <TYPE> can be 'h', 'v' or 't', which mean jump to a horizontally, vertically split window, or a new tabpage respectively. If <TYPE> is omitted, jump to a position in current window."},
+            \       ],
+            \       "typeDefinitions": [
+            \           {"name": ["--auto-jump"], "nargs": "?", "metavar": "<TYPE>", "help": "Jump to the target directly when there is only one match. <TYPE> can be 'h', 'v' or 't', which mean jump to a horizontally, vertically split window, or a new tabpage respectively. If <TYPE> is omitted, jump to a position in current window."},
+            \       ],
+            \       "references": [
+            \           {"name": ["--auto-jump"], "nargs": "?", "metavar": "<TYPE>", "help": "Jump to the target directly when there is only one match. <TYPE> can be 'h', 'v' or 't', which mean jump to a horizontally, vertically split window, or a new tabpage respectively. If <TYPE> is omitted, jump to a position in current window."},
+            \           {"name": ["--exclude-declaration"], "nargs": 0, "help": "Exclude declaration locations."},
+            \       ],
+            \   },
             \}
 
 let g:Lf_CommonArguments = [
@@ -212,6 +333,14 @@ let g:Lf_CommonArguments = [
             \ {"name": ["--recall"], "nargs": 0, "help": "Recall last search. If the result window is closed, reopen it."},
             \ {"name": ["--popup-height"], "nargs": 1, "help": "specifies the maximum height of popup window, only available in popup mode."},
             \ {"name": ["--popup-width"], "nargs": 1, "help": "specifies the width of popup window, only available in popup mode."},
+            \ {"name": ["--no-sort"], "nargs": 0, "help": "do not sort the result."},
+            \ {"name": ["--case-insensitive"], "nargs": 0, "help": "fuzzy search case insensitively."},
+            \ [
+            \   {"name": ["--auto-preview"], "nargs": 0, "help": "open preview window automatically."},
+            \   {"name": ["--no-auto-preview"], "nargs": 0, "help": "don't open preview window automatically."},
+            \ ],
+            \ {"name": ["--quick-select"], "nargs": "?", "choices":[0, 1], "metavar": "<VALUE>", "help": "Enable quick-select mode or not. <VALUE> can be '1' or '0', which means 'true' or 'false' respectively. If <VALUE> is omitted, it means enable quick-select mode."},
+            \ {"name": ["--preview-position"], "nargs": 1, "choices": ["top", "topleft", "topright", "right", "bottom", "left", "cursor"], "metavar": "<POSITION>", "help": "Specify where to place the preview window."},
             \]
 
 " arguments is something like g:Lf_CommonArguments
@@ -306,6 +435,21 @@ function! leaderf#Any#parseArguments(argLead, cmdline, cursorPos) abort
         else
             let arguments = []
         endif
+
+        if type(arguments) == type({})
+            if argNum == 2 || argNum == 3 && a:argLead != ""
+                return filter(keys(arguments), "s:Lf_FuzzyMatch(a:argLead, v:val)")
+            else
+                let arguments = arguments[argList[2]]
+            endif
+        endif
+
+        if argNum > 3 && argList[1] == "git" && argList[2] == "blame"
+            if get(existingOptions, -1, "") == "--date"
+                return ["relative", "local", "iso", "iso-strict", "rfc", "short", "default"]
+            endif
+        endif
+
         let argDict = s:Lf_GenDict(arguments + g:Lf_CommonArguments)
         for opt in s:Lf_Refine(arguments + g:Lf_CommonArguments)
             if type(opt) == type([])

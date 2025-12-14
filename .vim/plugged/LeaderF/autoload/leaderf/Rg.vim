@@ -13,7 +13,7 @@ endif
 
 exec g:Lf_py "from leaderf.rgExpl import *"
 
-function! leaderf#Rg#Maps()
+function! leaderf#Rg#Maps(heading)
     nmapclear <buffer>
     nnoremap <buffer> <silent> <CR>          :exec g:Lf_py "rgExplManager.accept()"<CR>
     nnoremap <buffer> <silent> o             :exec g:Lf_py "rgExplManager.accept()"<CR>
@@ -22,26 +22,29 @@ function! leaderf#Rg#Maps()
     nnoremap <buffer> <silent> v             :exec g:Lf_py "rgExplManager.accept('v')"<CR>
     nnoremap <buffer> <silent> t             :exec g:Lf_py "rgExplManager.accept('t')"<CR>
     nnoremap <buffer> <silent> p             :exec g:Lf_py "rgExplManager._previewResult(True)"<CR>
-    nnoremap <buffer> <silent> j             j:exec g:Lf_py "rgExplManager._previewResult(False)"<CR>
-    nnoremap <buffer> <silent> k             k:exec g:Lf_py "rgExplManager._previewResult(False)"<CR>
-    nnoremap <buffer> <silent> <Up>          <Up>:exec g:Lf_py "rgExplManager._previewResult(False)"<CR>
-    nnoremap <buffer> <silent> <Down>        <Down>:exec g:Lf_py "rgExplManager._previewResult(False)"<CR>
-    nnoremap <buffer> <silent> <PageUp>      <PageUp>:exec g:Lf_py "rgExplManager._previewResult(False)"<CR>
-    nnoremap <buffer> <silent> <PageDown>    <PageDown>:exec g:Lf_py "rgExplManager._previewResult(False)"<CR>
-    nnoremap <buffer> <silent> <LeftMouse>   <LeftMouse>:exec g:Lf_py "rgExplManager._previewResult(False)"<CR>
+    nnoremap <buffer> <silent> j             :<C-U>exec g:Lf_py "rgExplManager.moveAndPreview('j')"<CR>
+    nnoremap <buffer> <silent> k             :<C-U>exec g:Lf_py "rgExplManager.moveAndPreview('k')"<CR>
+    nnoremap <buffer> <silent> <Up>          :<C-U>exec g:Lf_py "rgExplManager.moveAndPreview('Up')"<CR>
+    nnoremap <buffer> <silent> <Down>        :<C-U>exec g:Lf_py "rgExplManager.moveAndPreview('Down')"<CR>
+    nnoremap <buffer> <silent> <PageUp>      :<C-U>exec g:Lf_py "rgExplManager.moveAndPreview('PageUp')"<CR>
+    nnoremap <buffer> <silent> <PageDown>    :<C-U>exec g:Lf_py "rgExplManager.moveAndPreview('PageDown')"<CR>
     nnoremap <buffer> <silent> q             :exec g:Lf_py "rgExplManager.quit()"<CR>
     " nnoremap <buffer> <silent> <Esc>         :exec g:Lf_py "rgExplManager.quit()"<CR>
-    nnoremap <buffer> <silent> i             :exec g:Lf_py "rgExplManager.input()"<CR>
-    nnoremap <buffer> <silent> <Tab>         :exec g:Lf_py "rgExplManager.input()"<CR>
+    if a:heading == 0
+        nnoremap <buffer> <silent> i             :exec g:Lf_py "rgExplManager.input()"<CR>
+        nnoremap <buffer> <silent> <Tab>         :exec g:Lf_py "rgExplManager.input()"<CR>
+    endif
     nnoremap <buffer> <silent> <F1>          :exec g:Lf_py "rgExplManager.toggleHelp()"<CR>
     nnoremap <buffer> <silent> d             :exec g:Lf_py "rgExplManager.deleteCurrentLine()"<CR>
     nnoremap <buffer> <silent> Q             :exec g:Lf_py "rgExplManager.outputToQflist()"<CR>
     nnoremap <buffer> <silent> L             :exec g:Lf_py "rgExplManager.outputToLoclist()"<CR>
-    if has("nvim")
-        nnoremap <buffer> <silent> <C-Up>    :exec g:Lf_py "rgExplManager._toUpInPopup()"<CR>
-        nnoremap <buffer> <silent> <C-Down>  :exec g:Lf_py "rgExplManager._toDownInPopup()"<CR>
-        nnoremap <buffer> <silent> <Esc>     :exec g:Lf_py "rgExplManager._closePreviewPopup()"<CR>
-    endif
+    nnoremap <buffer> <silent> r             :exec g:Lf_py "rgExplManager.replace()"<CR>
+    nnoremap <buffer> <silent> w             :call leaderf#Rg#ApplyChangesAndSave(0)<CR>
+    nnoremap <buffer> <silent> W             :call leaderf#Rg#ApplyChangesAndSave(1)<CR>
+    nnoremap <buffer> <silent> U             :call leaderf#Rg#UndoLastChange()<CR>
+    nnoremap <buffer> <silent> <C-Up>        :exec g:Lf_py "rgExplManager._toUpInPopup()"<CR>
+    nnoremap <buffer> <silent> <C-Down>      :exec g:Lf_py "rgExplManager._toDownInPopup()"<CR>
+    nnoremap <buffer> <silent> <Esc>         :exec g:Lf_py "rgExplManager.closePreviewPopupOrQuit()"<CR>
     if has_key(g:Lf_NormalMap, "Rg")
         for i in g:Lf_NormalMap["Rg"]
             exec 'nnoremap <buffer> <silent> '.i[0].' '.i[1]
@@ -52,11 +55,12 @@ endfunction
 " return the visually selected text and quote it with double quote
 function! leaderf#Rg#visual()
     try
-        let x_save = @x
+        let x_save = getreg("x", 1)
+        let type = getregtype("x")
         norm! gv"xy
-        return '"' . escape(@x, '"') . '"'
+        return '"' . escape(@x, '\"') . '"'
     finally
-        let @x = x_save
+        call setreg("x", x_save, type)
     endtry
 endfunction
 
@@ -67,7 +71,7 @@ function! leaderf#Rg#getPattern(type)
     if a:type == 0
         return expand('<cword>')
     elseif a:type == 1
-        return escape(expand('<cWORD>'))
+        return '"' . escape(expand('<cWORD>'), '"') . '"'
     elseif a:type == 2
         return leaderf#Rg#visual()
     else
@@ -87,12 +91,13 @@ function! leaderf#Rg#Interactive()
     try
         echohl Question
         let pattern = input("Search pattern: ")
+        let pattern = escape(pattern,'"')
         let glob = input("Search in files(e.g., *.c, *.cpp): ", "*")
         if glob =~ '^\s*$'
             return
         endif
         let globList = map(split(glob, '[ ,]\+'), 'v:val =~ ''^".*"$'' ? v:val : ''"''.v:val.''"''')
-        exec printf("Leaderf rg %s%s -g %s", pattern =~ '^\s*$' ? '' : '-e ', pattern, join(globList, ' -g '))
+        exec printf("Leaderf rg %s\"%s\" -g %s", pattern =~ '^\s*$' ? '' : '-e ', pattern, join(globList, ' -g '))
     finally
         echohl None
     endtry
@@ -102,6 +107,37 @@ function! leaderf#Rg#TimerCallback(id)
     call leaderf#LfPy("rgExplManager._workInIdle(bang=True)")
 endfunction
 
+function! leaderf#Rg#ApplyChanges()
+    call leaderf#LfPy("rgExplManager.applyChanges()")
+endfunction
+
+function! leaderf#Rg#UndoLastChange()
+    call leaderf#LfPy("rgExplManager.undo()")
+endfunction
+
+function! leaderf#Rg#Quit()
+    call leaderf#LfPy("rgExplManager.quit()")
+endfunction
+
+function! leaderf#Rg#ApplyChangesAndSave(save)
+    if ! &modified
+        return
+    endif
+    try
+        if a:save
+            let g:Lf_rg_apply_changes_and_save = 1
+        endif
+        write
+    finally
+        silent! unlet g:Lf_rg_apply_changes_and_save
+    endtry
+endfunction
+
+function! leaderf#Rg#Undo(buf_number_dict)
+    if has_key(a:buf_number_dict, bufnr('%'))
+        undo
+    endif
+endfunction
 
 let s:type_list = []
 function! s:rg_type_list() abort
@@ -144,100 +180,26 @@ endfunction
 
 
 function! leaderf#Rg#NormalModeFilter(winid, key) abort
-    let key = get(g:Lf_KeyDict, get(g:Lf_KeyMap, a:key, a:key), a:key)
+    let key = leaderf#RemapKey(g:Lf_PyEval("id(rgExplManager)"), get(g:Lf_KeyMap, a:key, a:key))
 
-    if key !=# "g"
-        call win_execute(a:winid, "let g:Lf_Rg_is_g_pressed = 0")
-    endif
-
-    if key ==# "j" || key ==? "<Down>"
-        call win_execute(a:winid, "norm! j")
-        exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-        "redraw
-        exec g:Lf_py "rgExplManager._getInstance().refreshPopupStatusline()"
-        exec g:Lf_py "rgExplManager._previewResult(False)"
-    elseif key ==# "k" || key ==? "<Up>"
-        call win_execute(a:winid, "norm! k")
-        exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-        "redraw
-        exec g:Lf_py "rgExplManager._getInstance().refreshPopupStatusline()"
-        exec g:Lf_py "rgExplManager._previewResult(False)"
-    elseif key ==? "<PageUp>" || key ==? "<C-B>"
-        call win_execute(a:winid, "norm! \<PageUp>")
-        exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-        exec g:Lf_py "rgExplManager._getInstance().refreshPopupStatusline()"
-        exec g:Lf_py "rgExplManager._previewResult(False)"
-    elseif key ==? "<PageDown>" || key ==? "<C-F>"
-        call win_execute(a:winid, "norm! \<PageDown>")
-        exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-        exec g:Lf_py "rgExplManager._getInstance().refreshPopupStatusline()"
-        exec g:Lf_py "rgExplManager._previewResult(False)"
-    elseif key ==# "g"
-        if get(g:, "Lf_Rg_is_g_pressed", 0) == 0
-            let g:Lf_Rg_is_g_pressed = 1
+    if key ==# "i" || key ==? "<Tab>"
+        if g:Lf_py == "py "
+            let has_heading = pyeval("'--heading' in rgExplManager._arguments")
         else
-            let g:Lf_Rg_is_g_pressed = 0
-            call win_execute(a:winid, "norm! gg")
-            exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-            redraw
+            let has_heading = py3eval("'--heading' in rgExplManager._arguments")
         endif
-    elseif key ==# "G"
-        call win_execute(a:winid, "norm! G")
-        exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-        redraw
-    elseif key ==? "<C-U>"
-        call win_execute(a:winid, "norm! \<C-U>")
-        exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-        redraw
-    elseif key ==? "<C-D>"
-        call win_execute(a:winid, "norm! \<C-D>")
-        exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-        redraw
-    elseif key ==? "<LeftMouse>"
-        if has('patch-8.1.2266')
-            call win_execute(a:winid, "exec v:mouse_lnum")
-            call win_execute(a:winid, "exec 'norm!'.v:mouse_col.'|'")
-            exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-            redraw
-            exec g:Lf_py "rgExplManager._previewResult(False)"
+        if !has_heading
+            call leaderf#ResetPopupOptions(a:winid, 'filter', 'leaderf#PopupFilter')
+            exec g:Lf_py "rgExplManager.input()"
         endif
-    elseif key ==? "<ScrollWheelUp>"
-        call win_execute(a:winid, "norm! 3k")
-        exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-        redraw
-        exec g:Lf_py "rgExplManager._getInstance().refreshPopupStatusline()"
-    elseif key ==? "<ScrollWheelDown>"
-        call win_execute(a:winid, "norm! 3j")
-        exec g:Lf_py "rgExplManager._cli._buildPopupPrompt()"
-        redraw
-        exec g:Lf_py "rgExplManager._getInstance().refreshPopupStatusline()"
-    elseif key ==# "q" || key ==? "<ESC>"
-        exec g:Lf_py "rgExplManager.quit()"
-    elseif key ==# "i" || key ==? "<Tab>"
-        call leaderf#ResetPopupOptions(a:winid, 'filter', 'leaderf#PopupFilter')
-        exec g:Lf_py "rgExplManager.input()"
-    elseif key ==# "o" || key ==? "<CR>" || key ==? "<2-LeftMouse>"
-        exec g:Lf_py "rgExplManager.accept()"
-    elseif key ==# "x"
-        exec g:Lf_py "rgExplManager.accept('h')"
-    elseif key ==# "v"
-        exec g:Lf_py "rgExplManager.accept('v')"
-    elseif key ==# "t"
-        exec g:Lf_py "rgExplManager.accept('t')"
-    elseif key ==# "p"
-        exec g:Lf_py "rgExplManager._previewResult(True)"
-    elseif key ==? "<F1>"
-        exec g:Lf_py "rgExplManager.toggleHelp()"
     elseif key ==# "d"
         exec g:Lf_py "rgExplManager.deleteCurrentLine()"
     elseif key ==# "Q"
         exec g:Lf_py "rgExplManager.outputToQflist()"
     elseif key ==# "L"
         exec g:Lf_py "rgExplManager.outputToLoclist()"
-    elseif key ==? "<C-Up>"
-        exec g:Lf_py "rgExplManager._toUpInPopup()"
-    elseif key ==? "<C-Down>"
-        exec g:Lf_py "rgExplManager._toDownInPopup()"
+    else
+        return leaderf#NormalModeFilter(g:Lf_PyEval("id(rgExplManager)"), a:winid, a:key)
     endif
 
     return 1

@@ -30,7 +30,9 @@ class WindowExplorer(Explorer):
         self._max_bufname_len = self._get_max_bufname_len()
 
         self._prefix_length = 10
+        self.show_icon = False
         if lfEval("get(g:, 'Lf_ShowDevIcons', 1)") == '1':
+            self.show_icon = True
             self._prefix_length += webDevIconsStrLen()
 
         for tab in vim.tabpages:
@@ -81,7 +83,7 @@ class WindowExplorer(Explorer):
         return "Window"
 
     def getStlCurDir(self):
-        return escQuote(lfEncode(os.getcwd()))
+        return escQuote(lfEncode(lfGetCwd()))
 
     def supportsNameOnly(self):
         return True
@@ -180,7 +182,11 @@ class WindowExplManager(Manager):
         if not line:
             return 0
 
-        prefix_len = self._getExplorer().getPrefixLength() - webDevIconsStrLen() + webDevIconsBytesLen()
+        if self._getExplorer().show_icon:
+            prefix_len = self._getExplorer().getPrefixLength() - webDevIconsStrLen() + webDevIconsBytesLen()
+        else:
+            prefix_len = self._getExplorer().getPrefixLength()
+
         if mode == 0:
             return prefix_len
         elif mode == 1:
@@ -262,9 +268,42 @@ class WindowExplManager(Manager):
 
         # devicons
         if lfEval("get(g:, 'Lf_ShowDevIcons', 1)") == '1':
-            self._match_ids.extend(matchaddDevIconsExtension(r'__icon__\ze\s\+\S\+\.__name__\($\|\s\)', winid))
+            self._match_ids.extend(matchaddDevIconsExtension(r'__icon__\ze\s\+.\{-}\.__name__\($\|\s\)', winid))
             self._match_ids.extend(matchaddDevIconsExact(r'__icon__\ze\s\+__name__\($\|\s\)', winid))
             self._match_ids.extend(matchaddDevIconsDefault(r'__icon__\ze\s\+\S\+\($\|\s\)', winid))
+
+    def deleteWindow(self):
+        instance = self._getInstance()
+        if self._inHelpLines():
+            return
+
+        line = instance._buffer_object[instance.window.cursor[0] - 1]
+        if line == '':
+            return
+
+        if instance.getWinPos() == 'popup':
+            lfCmd("call win_execute(%d, 'setlocal modifiable')" % instance.getPopupWinId())
+        else:
+            lfCmd("setlocal modifiable")
+        if len(self._content) > 0:
+            self._content.remove(line)
+            self._getInstance().setStlTotal(len(self._content)//self._getUnit())
+            self._getInstance().setStlResultsCount(len(self._content)//self._getUnit())
+
+        # current_bufnr = lfEval('bufnr()')
+        match = re.search(r"^\s?(\d+) \s?(\d+)", line)
+
+        tab = match.group(1)
+        win = match.group(2)
+        winid = lfEval("win_getid({}, {})".format(win, tab))
+        lfCmd("call win_execute({}, 'confirm close')".format(winid))
+
+        del instance._buffer_object[instance.window.cursor[0] - 1]
+        if instance.getWinPos() == 'popup':
+            instance.refreshPopupStatusline()
+            lfCmd("call win_execute(%d, 'setlocal nomodifiable')" % instance.getPopupWinId())
+        else:
+            lfCmd("setlocal nomodifiable")
 
 
 # *****************************************************

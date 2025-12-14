@@ -59,11 +59,11 @@ g:Lf_WindowPosition                             *g:Lf_WindowPosition*
     Setting this option can change the position of the LeaderF window.
     The value can be 'fullScreen', 'top', 'bottom', 'left', 'right'.
     'fullScreen' - the LeaderF window take up the full screen
-    'top' - the LeaderF window is at the top of the screen.
+    'top'    - the LeaderF window is at the top of the screen.
     'bottom' - the LeaderF window is at the bottom of the screen.
-    'left' - the LeaderF window is at the left of the screen.
-    'right' - the LeaderF window is at the right of the screen.
-    'popup' - the LeaderF window is a popup window or floating window.
+    'left'   - the LeaderF window is at the left of the screen.
+    'right'  - the LeaderF window is at the right of the screen.
+    'popup'  - the LeaderF window is a popup window or floating window.
     Default value is 'bottom'.
 
 g:Lf_WindowHeight                               *g:Lf_WindowHeight*
@@ -76,13 +76,13 @@ g:Lf_WindowHeight                               *g:Lf_WindowHeight*
     Default value is 0.5.
 
 g:Lf_TabpagePosition                            *g:Lf_TabpagePosition*
-    Specify where to put the newly opened tab page.
+    Specify where to put the newly opened tabpage.
     The value can be 0, 1, 2, ...
-    0 - make the newly opened tab page the first one.
-    1 - put the newly opened tab page before the current one.
-    2 - put the newly opened tab page after the current one.
-    3 - make the newly opened tab page the last one.
-    Default value is 2.
+    0 - make the newly opened tabpage the first one.
+    1 - put the newly opened tabpage before the current one.
+    2 - put the newly opened tabpage after the current one.
+    3 - make the newly opened tabpage the last one.
+    Default value is 3.
 
 g:Lf_ShowRelativePath                           *g:Lf_ShowRelativePath*
     Whether to show the relative path in the LeaderF window.
@@ -108,7 +108,9 @@ g:Lf_CacheDirectory                              *g:Lf_CacheDirectory*
     e.g. >
     let g:Lf_CacheDirectory = '/root'
 <
-    Default value is $HOME.
+    On Windows, default value is '%APPDATA%'.
+    On Linux, default value is '$XDG_CACHE_HOME' if $XDG_CACHE_HOME is defined,
+    otherwise, default value is '$HOME/.cache'.
 
 g:Lf_NeedCacheTime                              *g:Lf_NeedCacheTime*
     This option set a threshold, if the time of indexing files is greater than
@@ -186,6 +188,13 @@ g:Lf_HighlightIndividual                        *g:Lf_HighlightIndividual*
 g:Lf_NumberOfHighlight                          *g:Lf_NumberOfHighlight*
     Specify the number of highlight lines in the result.
     Default value is 100.
+
+g:Lf_DisableStl                                 *g:Lf_DisableStl*
+    Don't let LeaderF modify statusline.
+    e.g. >
+    let g:Lf_DisableStl = 1
+<
+    g:Lf_DisableStl will not be set by default.
 
 g:Lf_StlColorscheme                             *g:Lf_StlColorscheme*
     You can configure the colorscheme of statusline for LeaderF.
@@ -373,8 +382,8 @@ g:Lf_PreviewCode                                *g:Lf_PreviewCode*
 
 g:Lf_DefaultExternalTool                        *g:Lf_DefaultExternalTool*
     Use this option to specify the default external tool which is used to
-    index the files. Possible values are 'rg', 'pt'(not available on Windows),
-    'ag'(not available on Windows), 'find'.  If you do not want to use the external tool: >
+    index the files. Possible values are 'rg', 'pt', 'ag', 'find'.
+    If you do not want to use the external tool: >
     let g:Lf_DefaultExternalTool = ""
 <
     By default, use the external tool in the sequence of 'rg', 'pt', 'ag', 'find'
@@ -409,21 +418,25 @@ g:Lf_PreviewResult                              *g:Lf_PreviewResult*
     This is a dictionary, indicates whether to enable the preview of the result.
     Default value is: >
     let g:Lf_PreviewResult = {
-            \ 'File': 0,
-            \ 'Buffer': 0,
-            \ 'Mru': 0,
-            \ 'Tag': 0,
+            \ 'File': 1,
+            \ 'Buffer': 1,
+            \ 'Mru': 1,
+            \ 'Tag': 1,
             \ 'BufTag': 1,
             \ 'Function': 1,
-            \ 'Line': 0,
-            \ 'Colorscheme': 0,
-            \ 'Rg': 0,
-            \ 'Gtags': 0
+            \ 'Line': 1,
+            \ 'Colorscheme': 1,
+            \ 'Rg': 1,
+            \ 'Gtags': 1
             \}
 <
     e.g., if you want to disable the preview of BufTag explorer: >
     let g:Lf_PreviewResult = { 'BufTag': 0 }
 <
+    You can also specify `--auto-preview` or `--no-auto-preview` for the specific
+    command to override this option.
+    e.g., `Leaderf file --no-auto-preview`
+
 g:Lf_RememberLastSearch                         *g:Lf_RememberLastSearch*
     This option specifies whether to remember the last search. If the value is
     1, the search string you typed during last search is still there when
@@ -438,6 +451,8 @@ g:Lf_UseCache                                   *g:Lf_UseCache*
     Default value is 1.
 
 g:Lf_NormalMap                                  *g:Lf_NormalMap*
+    This option is deprecated in favor of |g:Lf_NormalCommandMap|.
+
     Use this option to customize the mappings in normal mode.
     The mapping with the key `"_"` applies to all categories.
     Also, `"_"` is overridden by the mapping of each category.
@@ -491,9 +506,9 @@ g:Lf_WorkingDirectoryMode                       *g:Lf_WorkingDirectoryMode*
 
 g:Lf_WorkingDirectory                           *g:Lf_WorkingDirectory*
     Set LeaderF's working directory. It will ignore the |g:Lf_RootMarkers| and
-	|g:Lf_WorkingDirectoryMode| option set.
-	e.g., >
-	let g:Lf_WorkingDirectory = finddir('.git', '.;')
+    |g:Lf_WorkingDirectoryMode| option set.
+    e.g., >
+    let g:Lf_WorkingDirectory = finddir('.git', '.;')
 <
 g:Lf_CommandMap                                 *g:Lf_CommandMap*
     Use this option to customize the mappings inside LeaderF's
@@ -502,6 +517,41 @@ g:Lf_CommandMap                                 *g:Lf_CommandMap*
     change the default command <ESC> to <C-A> and <C-B>: >
     let g:Lf_CommandMap = {'<C-F>': ['<C-D>'], '<ESC>': ['<C-A>', '<C-B>']}
 <
+    Note: The key of the dictionary is the old command, the value of the
+    dictionary is the new command.
+
+g:Lf_NormalCommandMap                                  *g:Lf_NormalCommandMap*
+    Use this option to customize the mappings in normal mode.
+    The mapping with the key `"*"` applies to all categories.
+    Also, `"*"` is overridden by the mapping of each category.
+
+    Note: The key of the dictionary is the old command, the value of the
+    dictionary is the new command.
+
+    e.g., >
+    let g:Lf_NormalCommandMap = {
+        \ "*":      {
+        \               "<C-Down>": "<C-J>",
+        \               "<C-Up>":   "<C-K>"
+        \           },
+        \ "File":   {
+        \               "q":     "<Esc>",
+        \               "a":     "<C-A>",
+        \               "<Esc>": "<C-W>",
+        \           },
+        \ "Buffer": {},
+        \ "Mru":    {},
+        \ "Tag":    {},
+        \ "BufTag": {},
+        \ "Function": {},
+        \ "Line":   {},
+        \ "History":{},
+        \ "Help":   {},
+        \ "Rg":     {},
+        \ "Gtags":  {},
+        \ "Colorscheme": {}
+        \}
+
 g:Lf_HideHelp                                   *g:Lf_HideHelp*
     To specify whether to show the hint "Press <F1> for help" in normal mode.
     You can set the value to 1 to hide the hint.
@@ -540,7 +590,7 @@ g:Lf_HistoryNumber                              *g:Lf_HistoryNumber*
     Specify the number of records in history.
     Default value is 100.
 
-g:Lf_HistoryExclude                              *g:Lf_HistoryExclude*
+g:Lf_HistoryExclude                             *g:Lf_HistoryExclude*
     This option indicates that do not display the historires that matches the
     patterns defined in it.
 
@@ -564,11 +614,19 @@ g:Lf_HistoryEditPromptIfEmpty                   *g:Lf_HistoryEditPromptIfEmpty*
     the entered prompt is edited.
     Default value is 1.
 
+g:Lf_Rg                                         *g:Lf_Rg*
+    Use this option to specify the rg executable you use. If rg is not
+    in one of the directories in your $PATH environment variable, you should
+    set it by yourself. e.g., >
+    let g:Lf_Rg = 'C:\Windows\System32\rg.exe'
+<
+    Default value is "rg".
+
 g:Lf_RgConfig                                   *g:Lf_RgConfig*
     Specify a list of ripgrep configurations. For example, >
     let g:Lf_RgConfig = [
         \ "--max-columns=150",
-        \ "--type-add web:*.{html,css,js}*",
+        \ '--type-add "web:*.{html,css,js}*"',
         \ "--glob=!git/*",
         \ "--hidden"
     \ ]
@@ -590,6 +648,11 @@ g:Lf_RgStorePattern                             *g:Lf_RgStorePattern*
 
     Default value is "".
 
+g:Lf_RgHighlightInPreview                       *g:Lf_RgHighlightInPreview*
+    Specify whether to highlight searched words in preview window.
+
+    Default value is 1.
+
 g:Lf_MaxCount                                   *g:Lf_MaxCount*
     Specify the limit of the number of source entries. LeaderF will stop
     producing the source entries if the limit is hit. There is no limit if the
@@ -602,6 +665,18 @@ g:Lf_NoChdir                                    *g:Lf_NoChdir*
     to `dir`.
     Default value is 1.
 
+g:Lf_Global                                      *g:Lf_Global*
+    Use this option to customize the global executable to use. e.g., >
+    let g:Lf_Global = "/bin/global"
+<
+    Default value is "global".
+
+g:Lf_Gtags                                       *g:Lf_Gtags*
+    Use this option to customize the global executable to use. e.g., >
+    let g:Lf_Gtags = "/bin/gtags"
+<
+    Default value is "gtags".
+
 g:Lf_GtagsAutoGenerate                          *g:Lf_GtagsAutoGenerate*
     If the value is 1 and there is a rootmark defined by |g:Lf_RootMarkers|
     under the project root directory, gtags files will be generated
@@ -609,6 +684,18 @@ g:Lf_GtagsAutoGenerate                          *g:Lf_GtagsAutoGenerate*
     reading the file into the buffer. Otherwise, gtags files should be
     generated manually by using `Leaderf gtags --update` .
     Default value is 0.
+
+g:Lf_GtagsGutentags                             *g:Lf_GtagsGutentags*
+    if you use https://github.com/ludovicchabant/vim-gutentags to generate
+    gtags; Firstly, you should let g:Lf_GtagsAutoGenerate = 0 and let g:Lf_GtagsGutentags = 1.
+    Then, you should config gutentags like this: g:Lf_CacheDirectory = expand('~')
+    and g:gutentags_cache_dir = expand(g:Lf_CacheDirectory.'/LeaderF/gtags')
+    Default value is 0
+
+g:Lf_GtagsAutoUpdate                            *g:Lf_GtagsAutoUpdate*
+    If the value is 1 and the gtags database already exists, gtags database
+    will be updated automatically after the buffer is saved.
+    Default value is 1.
 
 g:Lf_GtagsSource                                *g:Lf_GtagsSource*
     Gtags accepts a list of files as target files. This option indicates
@@ -632,22 +719,22 @@ g:Lf_GtagsfilesCmd                              *g:Lf_GtagsfilesCmd*
     repository and `hg files` for hg repository, use `rg --no-messages --files`
     otherwise.
 
-g:Lf_GtagsAcceptDotfiles                          *g:Lf_GtagsAcceptDotfiles*
+g:Lf_GtagsAcceptDotfiles                        *g:Lf_GtagsAcceptDotfiles*
     This option tells gtags to accept files and directories whose names begin
     with a dot if the value is 1.
     Default value is 0.
 
-g:Lf_GtagsSkipUnreadable                          *g:Lf_GtagsSkipUnreadable*
+g:Lf_GtagsSkipUnreadable                        *g:Lf_GtagsSkipUnreadable*
     This option tells gtags to skip unreadable files if the value is 1.
     Default value is 0.
 
-g:Lf_GtagsSkipSymlink                             *g:Lf_GtagsSkipSymlink*
+g:Lf_GtagsSkipSymlink                           *g:Lf_GtagsSkipSymlink*
     This option tells gtags to skip symbolic links. If value is 'f' then skip
     only symbolic links for file, else if 'd' then skip only symbolic links
     for directory, else if value is 'a' then all symbolic links are skipped.
-    Default value is "".
+    Default value is "a".
 
-g:Lf_Gtagsconf                                    *g:Lf_Gtagsconf*
+g:Lf_Gtagsconf                                  *g:Lf_Gtagsconf*
     This option specifies the path of gtags configuration file('gtags.conf' or
     '.globalrc').
     Basically, you don't have to use this option, gtags has default values in
@@ -656,7 +743,7 @@ g:Lf_Gtagsconf                                    *g:Lf_Gtagsconf*
 
     Default value is "".
 
-g:Lf_Gtagslabel                                   *g:Lf_Gtagslabel*
+g:Lf_Gtagslabel                                 *g:Lf_Gtagslabel*
     This option specifies a label of the configuration file.
     By default, gtags supports C, C++, Yacc, Java, PHP and Assembly
     programming language. If you want to support other programming languages,
@@ -664,31 +751,46 @@ g:Lf_Gtagslabel                                   *g:Lf_Gtagslabel*
     set this option as "native-pygments".
     Default value is "default".
 
-g:Lf_GtagsStoreInProject                          *g:Lf_GtagsStoreInProject*
+g:Lf_GtagsStoreInProject                        *g:Lf_GtagsStoreInProject*
     This option specifies whether to store the gtags database files in the
     root directory of the project.
 
     Default value is 0.
 
-g:Lf_EmptyQuery                                   *g:Lf_EmptyQuery*
+g:Lf_GtagsStoreInRootMarker                     *g:Lf_GtagsStoreInRootMarker*
+    This option specifies whether to store the gtags database files in the
+    root marker of the project.
+
+    Default value is 0.
+
+g:Lf_GtagsHigherThan6_6_2                       *g:Lf_GtagsHigherThan6_6_2*
+    If `gtag error! unrecognized option --skip-symlink` happens, set the value
+    to 0.
+    Default value is 1.
+
+g:Lf_EmptyQuery                                 *g:Lf_EmptyQuery*
     This option specifies whether to enable the empty query, i.e., if no
     pattern is input, sort the result according to the best match of current
     buffer's name.
 
     Default value is 1.
 
-g:Lf_IgnoreCurrentBufferName                      *g:Lf_IgnoreCurrentBufferName*
+g:Lf_IgnoreCurrentBufferName                    *g:Lf_IgnoreCurrentBufferName*
     This option specifies whether to remove the current buffer name from
     the result list.
 
     Default value is 0.
 
-g:Lf_PreviewInPopup                               *g:Lf_PreviewInPopup*
+g:Lf_PreviewInPopup                             *g:Lf_PreviewInPopup*
     This option specifies whether to preview the result in a popup window.
 
-    Default value is 0.
+    Default value is 1.
 
-g:Lf_PreviewHorizontalPosition                    *g:Lf_PreviewHorizontalPosition*
+g:Lf_PreviewHorizontalPosition                  *g:Lf_PreviewHorizontalPosition*
+    [[This option is deprecated. Use |g:Lf_PreviewPosition| instead.]]
+    [[This option is deprecated. Use |g:Lf_PreviewPosition| instead.]]
+    [[This option is deprecated. Use |g:Lf_PreviewPosition| instead.]]
+
     Specify where to locate the preview window horizontally. The value can be
     one of the following:
     'left': the preview window is on the left side of the screen.
@@ -696,21 +798,21 @@ g:Lf_PreviewHorizontalPosition                    *g:Lf_PreviewHorizontalPositio
     'right': the preview window is on the right side of the screen.
     'cursor': the preview window is at the cursor position.
 
-    Default value is 'cursor'.
+    Default value is 'right'.
 
-g:Lf_PreviewPopupWidth                            *g:Lf_PreviewPopupWidth*
-    Specify the width of preview popup window, the value should be a non-negative
-    integer. If the value is 0, the width is half of the screen's width.
-
-    Default value is 0.
-
-g:Lf_DiscardEmptyBuffer                           *g:Lf_DiscardEmptyBuffer*
-    Specify whether to discard the first empty [No Name] buffer when opening
-    with <C-T>.
+g:Lf_PreviewPopupWidth                          *g:Lf_PreviewPopupWidth*
+    Specify the width of preview window, the value should be a non-negative
+    integer. If the value is 0, the width of preview window is the same as the
+    width of the main LeaderF window.
 
     Default value is 0.
 
-g:Lf_PopupWidth                                   *g:Lf_PopupWidth*
+g:Lf_PreviewScrollStepSize                      *g:Lf_PreviewScrollStepSize*
+    Specify how many rows will be scrolled at once in the preview window.
+
+    Default value is 1.
+
+g:Lf_PopupWidth                                 *g:Lf_PopupWidth*
     Specify the width of the popup window or floating window when LeaderF is
     in popup mode. `Popup mode` is when |g:Lf_WindowPosition| is 'popup' or '--popup'
     is in the options list of `Leaderf` command.
@@ -723,11 +825,11 @@ g:Lf_PopupWidth                                   *g:Lf_PopupWidth*
     For example, set the width to 3/4 of the screen's width: >
     let g:Lf_PopupWidth = &columns * 3 / 4
     or
-    let g:Lf_PopupHeight = 0.75
+    let g:Lf_PopupWidth = 0.75
 <
     Default value is 0.
 
-g:Lf_PopupHeight                                   *g:Lf_PopupHeight*
+g:Lf_PopupHeight                                *g:Lf_PopupHeight*
     Specify the height of the popup window or floating window when LeaderF is
     in popup mode. `Popup mode` is when |g:Lf_WindowPosition| is 'popup' or '--popup'
     is in the options list of `Leaderf` command.
@@ -743,7 +845,7 @@ g:Lf_PopupHeight                                   *g:Lf_PopupHeight*
 <
     Default value is 0.
 
-g:Lf_PopupPosition                                 *g:Lf_PopupPosition*
+g:Lf_PopupPosition                              *g:Lf_PopupPosition*
     Specify the coordinate of the topleft corner of popup window or floating
     window when LeaderF is in popup mode. `Popup mode` is when |g:Lf_WindowPosition|
     is 'popup' or '--popup' is in the options list of `Leaderf` command.
@@ -756,26 +858,40 @@ g:Lf_PopupPosition                                 *g:Lf_PopupPosition*
 
     Default value is [0, 0].
 
-g:Lf_PopupShowStatusline                           *g:Lf_PopupShowStatusline*
+g:Lf_PopupShowStatusline                        *g:Lf_PopupShowStatusline*
     Specify whether to show the statusline when LeaderF is in popup mode.
     `Popup mode` is when |g:Lf_WindowPosition| is 'popup' or '--popup' is in the
     options list of `Leaderf` command.
 
     Default value is 1.
 
-g:Lf_PopupPreviewPosition                          *g:Lf_PopupPreviewPosition*
-    Specify where to locate the preview window when LeaderF is in popup mode.
+g:Lf_PopupPreviewPosition                       *g:Lf_PopupPreviewPosition*
+    Specify where to place the preview window when LeaderF is in popup mode.
     `Popup mode` is when |g:Lf_WindowPosition| is 'popup' or '--popup' is in the
     options list of `Leaderf` command.
     The value can be one of the following:
     'top': the preview window is on the top of the main LeaderF window.
     'bottom': the preview window is at the bottom of the main LeaderF window.
-    'cursor': the preview window is at the cursor position in the main LeaderF
-              window.
+    'left': the preview window is on the left of the main LeaderF window.
+    'right': the preview window is on the right of the main LeaderF window.
+
+    Default value is 'right'.
+
+g:Lf_PreviewPosition                            *g:Lf_PreviewPosition*
+    Specify where to place the preview window when LeaderF is in non-popup mode.
+
+    The value can be one of the following:
+    'top': the preview window is on the top of the main LeaderF window.
+    'topleft': the preview window is on the topleft of the main LeaderF window.
+    'topright': the preview window is on the topright of the main LeaderF window.
+    'right': the preview window is on the right of the main LeaderF window.
+    'bottom': the preview window is at the bottom of the main LeaderF window.
+              (only available when LeaderF window is on the top)
+    'cursor': the preview window is at the cursorline of the main LeaderF window.
 
     Default value is 'top'.
 
-g:Lf_PopupColorscheme                              *g:Lf_PopupColorscheme*
+g:Lf_PopupColorscheme                           *g:Lf_PopupColorscheme*
     You can configure the colorscheme of LeaderF in popup mode.
     e.g. >
     let g:Lf_PopupColorscheme = 'default'
@@ -788,7 +904,7 @@ g:Lf_PopupColorscheme                              *g:Lf_PopupColorscheme*
 
     Default value is 'default'.
 
-g:Lf_PopupPalette                                  *g:Lf_PopupPalette*
+g:Lf_PopupPalette                               *g:Lf_PopupPalette*
     This is a dictionary, you can customize the colorscheme of popup mode using
     it.
     Its structure is like below: >
@@ -824,6 +940,39 @@ g:Lf_PopupPalette                                  *g:Lf_PopupPalette*
 
     It is not defined by default.
 
+g:Lf_PopupShowFoldcolumn                        *g:Lf_PopupShowFoldcolumn*
+    Specifies whether to show the foldcolumn in popup window, value 1 means
+    showing foldcolumn, otherwise not.
+
+    Default value is 1.
+
+g:Lf_PopupAutoAdjustHeight                      *g:Lf_PopupAutoAdjustHeight*
+    Specifies whether to adjust the height of popup window automatically.
+
+    Default value is 1.
+
+g:Lf_PopupShowBorder                            *g:Lf_PopupShowBorder*
+    Specifies whether to show borders for popup window.
+
+    Default value is 1.
+
+g:Lf_PopupBorders                               *g:Lf_PopupBorders*
+    Specifies a list of characters, defining the character to use for the
+    top/right/bottom/left border, followed by the character to use for the
+    topleft/topright/botright/botleft corner.
+    Example: >
+    let g:Lf_PopupBorders = ["─","│","─","│","╭","╮","╯","╰"]
+    let g:Lf_PopupBorders = ["─","│","─","│","┌","┐","┘","└"]
+    let g:Lf_PopupBorders = ["━","┃","━","┃","┏","┓","┛","┗"]
+    let g:Lf_PopupBorders = ["═","║","═","║","╔","╗","╝","╚"]
+<
+    For some terminals, the non-ascii characters can not be displayed
+    properly for borders, see https://github.com/neovim/neovim/issues/17996.
+    To have a good display for non-ascii characters, perhaps you need to set
+    the value of |ambiwidth| as "single".
+
+    Default value is ["─","│","─","│","╭","╮","╯","╰"].
+
 g:Lf_AutoResize                                 *g:Lf_AutoResize*
     Auto resize the LeaderF window height automatically.
 
@@ -833,14 +982,14 @@ g:Lf_JumpToExistingWindow                       *g:Lf_JumpToExistingWindow*
     Jump to existing window if the selected file is already opened in a
     window.
 
-    Default value is 0.
+    Default value is 1.
 
 g:Lf_ShowDevIcons                               *g:Lf_ShowDevIcons*
     Support commands: buffer,file,mru,window
 
     Default value is 1.
 
-g:Lf_DevIconsFont                                 *g:Lf_DevIconsFont*
+g:Lf_DevIconsFont                               *g:Lf_DevIconsFont*
     Specifies the font used to display the icon.
     If it is empty, use the default font.
 
@@ -889,8 +1038,8 @@ g:Lf_DevIconsPalette                            *g:Lf_DevIconsPalette*
         `'default'` : General Icons.
         Other Keys: Icons of the file type and the specified file name.
 
-    The default values are written in the following:
-    `LeaderF/autoload/leaderf.vim`
+    The default values can be seen in a dict called `devicons_palette` in
+    `LeaderF/autoload/leaderf/python/leaderf/devicons.py`
 
     The default value is set by referring to
     https://github.com/vscode-icons/vscode-icons
@@ -917,6 +1066,182 @@ g:Lf_SpinSymbols                                *g:Lf_SpinSymbols*
     For Linux platform, the default value is ['△', '▲', '▷', '▶', '▽', '▼', '◁', '◀'],
     for Windows and MacOS, the default value is ['🌘', '🌗', '🌖', '🌕', '🌔', '🌓', '🌒', '🌑']
 
+g:Lf_FileActions                                *g:Lf_FileActions*
+    Specify the command to handle the user seleted file instead the default
+    vim edit command.
+
+    e.g.: >
+    " _vimrc or .vimrc adding the following code
+    let g:Lf_FileActions = { '.pdf': '!start'
+                           \,'.doc':'!start'
+                           \,'.docx':'!start'
+                           \,'.odt':'!start'
+                           \,'.xlsx':'!start'
+                           \,'.jpg':'!start'
+                           \}
+<
+    then if the user select "da\db\c.pdf", leaderf will execute command as following: >
+    :!start da\db\c.pdf
+<
+    to open "da\db\c.pdf" with pdfreader in Windows OS.
+
+g:Lf_MruEnable                                *g:Lf_MruEnable*
+    Enable `Leaderf mru` or not.
+    Default value is 1.
+
+g:Lf_MruEnableFrecency                        *g:Lf_MruEnableFrecency*
+    This option specifies whether `Leaderf mru` uses frecency algorithm.
+    `--frecency` can override this option.
+    Default value is 0.
+
+g:Lf_QuickSelect                              *g:Lf_QuickSelect*
+    Enable or disable quick-select mode. If enabled, the characters [0-9] are not
+    treated as literal characters, but are used to select the [0-9]th entry. 0
+    means the 10th entry.
+    NOTE: Appending '--quick-select' to the arguments list of the `Leaderf` command
+    will override this option.
+
+    Default value is 0.
+
+g:Lf_QuickSelectAction                        *g:Lf_QuickSelectAction*
+    This option specifies what action to be taken when quick-select mode is enabled
+    and an entry is selected.
+
+    The value can be one of the following:
+    '':  do nothing.
+    'c': open the selected entry in the current window.
+    'h': open the selected entry in a horizontally split window.
+    'v': open the selected entry in a vertically split window.
+    't': open the selected entry in a new tabpage.
+
+    Default value is 'c'.
+
+g:Lf_SpacesAfterIcon                          *g:Lf_SpacesAfterIcon*
+    Specifies the spaces after the icon if |g:Lf_ShowDevIcons| is 1.
+
+    Default value is ' '.
+
+g:Lf_EnableCircularScroll                     *g:Lf_EnableCircularScroll*
+    Enable circular scroll in the result window.
+
+    Default value is 0.
+
+g:Lf_GitCommands                              *g:Lf_GitCommands*
+    Define a list of commands you may want to use frequently.
+    The list is as follows: >
+    let g:Lf_GitCommands = [
+                    \ {"Leaderf git diff":                "fuzzy search and view the diffs"},
+                    \ {"Leaderf git diff --cached":       "fuzzy search and view `git diff --cached`"},
+                    \ {"Leaderf git diff HEAD":           "fuzzy search and view `git diff HEAD`"},
+                    \ {"Leaderf git diff --side-by-side": "fuzzy search and view the side-by-side diffs"},
+                    \ ]
+<
+    Open the commands panel using `:Leaderf git` .
+
+g:Lf_GitFolderIcons                           *g:Lf_GitFolderIcons*
+    To customize the folder icons in tree panel.
+    Default value is { 'open': '', 'closed': '' }.
+
+g:Lf_GitAddIcon                               *g:Lf_GitAddIcon*
+    To customize the icon of added file in tree panel.
+    Default value is ''.
+
+g:Lf_GitCopyIcon                              *g:Lf_GitCopyIcon*
+    To customize the icon of copied file in tree panel.
+    Default value is ''.
+
+g:Lf_GitDelIcon                               *g:Lf_GitDelIcon*
+    To customize the icon of deleted file in tree panel.
+    Default value is ''.
+
+g:Lf_GitModifyIcon                            *g:Lf_GitModifyIcon*
+    To customize the icon of modified file in tree panel.
+    Default value is ''.
+
+g:Lf_GitRenameIcon                            *g:Lf_GitRenameIcon*
+    To customize the icon of renamed file in tree panel.
+    Default value is ''.
+
+g:Lf_GitNavigationPanelHeight                 *g:Lf_GitNavigationPanelHeight*
+    To customize the height of navigation(tree) panel.
+    Default value is &lines * 0.3.
+
+g:Lf_GitNavigationPanelWidth                  *g:Lf_GitNavigationPanelWidth*
+    To customize the width of navigation(tree) panel.
+    Default value is 44.
+
+g:Lf_GitContextNum                            *g:Lf_GitContextNum*
+    Show diffs with g:Lf_GitContextNum lines of context.
+    Default value is 6.
+
+g:Lf_GitDiffViewMode                          *g:Lf_GitDiffViewMode*
+    Show diffs in a side by side view or in a unified view.
+    Value can be: 'side-by-side' or 'unified'.
+    Default value is 'unified'.
+
+g:Lf_GitHightlightLineNumber                  *g:Lf_GitHightlightLineNumber*
+    Specify whether to highlight the line number when diff view is in
+    'unified' mode. If enabled, the line numbers of changed lines are also
+    highlighted with 'DiffAdd' or 'DiffDelete'.
+    Default value is 1.
+
+g:Lf_GitWorkingDirectoryMode                  *g:Lf_GitWorkingDirectoryMode*
+    Specify the working directory when launch Leaderf git command. The value
+    can be:
+    c - the nearest ancestor directory of current working directory that
+        contains '.git'.
+    f - the nearest ancestor directory of current file that contains '.git'.
+        Fall back to 'c' if no such ancestor directory found.
+
+    Default value is 'f'.
+
+g:Lf_GitKeyMap                                *g:Lf_GitKeyMap*
+    Customize the shortcut keys.
+    Default value is : >
+    let g:Lf_GitKeyMap = {
+            \ 'previous_change': '[c',
+            \ 'next_change': ']c',
+            \ 'edit_file': '<CR>',
+            \ }
+<
+    it means you can use [c to jump backwards to the previous start of a change
+    and use ]c to jump forwards to the next start of a change.
+
+g:Lf_GitInlineBlameEnable                     *g:Lf_GitInlineBlameEnable*
+    Whether to enable inline blame or not by default.
+
+    Default value is 0.
+
+g:Lf_GitBlameTimeFormat                       *g:Lf_GitBlameTimeFormat*
+    Specify a format string to represent the date and time, the format string
+    is the same as used by strftime(), for example, '%Y-%m-%d %H:%M:%S'.
+
+    Default value is "".
+
+g:Lf_CocCommands                              *g:Lf_CocCommands*
+    Define a list of commands you may want to use frequently.
+    The list is as follows: >
+    let g:Lf_CocCommands = [
+                \ {"Leaderf! coc definitions --auto-jump": "run CocAction('jumpDefinition')"},
+                \ {"Leaderf! coc references --auto-jump": "run CocAction('jumpReferences')"},
+                \ {"Leaderf! coc references --auto-jump --exclude-declaration": "run CocAction('jumpUsed')"},
+                \ {"Leaderf! coc declarations --auto-jump": "run CocAction('jumpDeclaration')"},
+                \ {"Leaderf! coc implementations --auto-jump": "run CocAction('jumpImplementation')"},
+                \ {"Leaderf! coc typeDefinitions --auto-jump": "run CocAction('jumpTypeDefinition')"},
+                \ ]
+<
+    Open the commands panel using `:Leaderf coc` .
+
+g:Lf_GitAlias                                 *g:Lf_GitAlias*
+    Define the alias of git subcommand.
+
+    Default value is : >
+    let g:Lf_GitAlias = {
+            \ "status": "st",
+            \ "diff":   "df",
+            \ "blame":  "bl",
+            \}
+<
 ==============================================================================
 USAGE                                           *leaderf-usage*
 
@@ -980,11 +1305,40 @@ USAGE                                           *leaderf-usage*
 :LeaderfWindow                                  *LeaderfWindow*
     Launch LeaderF to search windows.
 
+:LeaderfQuickFix                                *LeaderfQuickFix*
+    Launch LeaderF to navigate the quickfix.
+
+:LeaderfLocList                                 *LeaderfLocList*
+    Launch LeaderF to navigate the location list.
+
 :LeaderfRgInteractive                           *LeaderfRgInteractive*
     Launch LeaderF to use rg interactively.
 
 :LeaderfRgRecall                                *LeaderfRgRecall*
     Recall last search of rg.
+
+:LeaderfGit                                     *LeaderfGit*
+    List some frequently used commands of Leaderf git.
+
+:LeaderfGitSplitDiff                            *LeaderfGitSplitDiff*
+    Show the diffs of current file in a vertical split window.
+    It is a shortcut of `:Leaderf git diff --current-file --side-by-side`
+
+:LeaderfGitNavigationOpen                       *LeaderfGitNavigationOpen*
+    Open the navigation panel.
+
+:LeaderfGitInlineBlameEnable                    *LeaderfGitInlineBlameEnable*
+    Enable inline blame. This command is a shortcut of `:Leaderf git blame --inline`
+
+:LeaderfGitInlineBlameDisable                   *LeaderfGitInlineBlameDisable*
+    Disable inline blame.
+
+:LeaderfGitInlineBlameToggle                    *LeaderfGitInlineBlameToggle*
+    Toggle inline blame.
+
+:LeaderfGitInlineBlameUpdate                    *LeaderfGitInlineBlameUpdate*
+    If the file is updated in the git repository, we need to use this command
+    to update the inline blame.
 
 Some handy maps for `Leaderf rg`:
 

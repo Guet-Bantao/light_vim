@@ -27,10 +27,16 @@ if !exists('g:gutentags_auto_add_gtags_cscope')
     let g:gutentags_auto_add_gtags_cscope = 1
 endif
 
+" add 2025.12.4
+if !exists('g:gutentags_force_gtags_update_when_fail')
+    let g:gutentags_force_gtags_update_when_fail = 0
+endif
+
 " }}}
 
 " Gutentags Module Interface {{{
 
+let s:runner_exe = gutentags#get_plat_file('update_gtags')
 let s:added_db_files = {}
 
 function! s:add_db(db_file) abort
@@ -77,18 +83,25 @@ function! gutentags#gtags_cscope#init(project_root) abort
 endfunction
 
 function! gutentags#gtags_cscope#generate(proj_dir, tags_file, gen_opts) abort
-    " gtags doesn't honour GTAGSDBPATH and GTAGSROOT, so PWD and dbpath
-    " have to be set
-    let l:db_path = fnamemodify(a:tags_file, ':p:h')
+    let l:cmd = [s:runner_exe]
+    let l:cmd += ['-e', '"' . g:gutentags_gtags_executable . '"']
+
+    let l:file_list_cmd = gutentags#get_project_file_list_cmd(a:proj_dir)
+    if !empty(l:file_list_cmd)
+        let l:cmd += ['-L', '"' . l:file_list_cmd . '"']
+    endif
 
     let l:proj_options_file = a:proj_dir . '/' . g:gutentags_gtags_options_file
-
-    let l:cmd = ['"'.g:gutentags_gtags_executable.'"']
     if filereadable(l:proj_options_file)
         let l:proj_options = readfile(l:proj_options_file)
         let l:cmd += l:proj_options
     endif
+
+    " gtags doesn't honour GTAGSDBPATH and GTAGSROOT, so PWD and dbpath
+    " have to be set
+    let l:db_path = fnamemodify(a:tags_file, ':p:h')
     let l:cmd += ['--incremental', '"'.l:db_path.'"']
+
     let l:cmd = gutentags#make_args(l:cmd)
 
     call gutentags#trace("Running: " . string(l:cmd))
@@ -116,6 +129,21 @@ function! gutentags#gtags_cscope#on_job_exit(job, exit_val) abort
         call gutentags#warning(
                     \"gtags-cscope job failed, returned: ".
                     \string(a:exit_val))
+        " add 2025.12.4
+        if g:gutentags_force_gtags_update_when_fail
+            let l:del_dbfile_path = substitute(l:dbfile_path, "^'+", '', '')
+            let l:del_dbfile_path = substitute(l:del_dbfile_path, "'+$", '', '')
+
+            if filereadable(l:del_dbfile_path)
+                call delete(l:del_dbfile_path)
+            endif
+        endif
+    endif
+    if has('win32') && g:__gutentags_vim_is_leaving
+        " The process got interrupted because Vim is quitting.
+        " Remove the db file on Windows because there's no `trap`
+        " statement in the update script.
+        try | call delete(l:dbfile_path) | endtry
     endif
 endfunction
 

@@ -37,6 +37,17 @@ class ParseSnippets_UnknownDirective(_VimTest):
     expected_error = r"Invalid line 'unknown directive' in \S+:2"
 
 
+class ParseSnippets_InvalidPartialSnippet(_VimTest):
+    files = {
+        "us/all.snippets": r"""
+        snip invalid
+        """
+    }
+    keys = "testsnip" + EX
+    wanted = "testsnip" + EX
+    expected_error = r"Invalid line 'snip invalid' in \S+:2"
+
+
 class ParseSnippets_InvalidPriorityLine(_VimTest):
     files = {
         "us/all.snippets": r"""
@@ -220,7 +231,7 @@ class ParseSnippets_MultiWord_NoContainer(_VimTest):
     }
     keys = "test snip" + EX
     wanted = keys
-    expected_error = "Invalid multiword trigger: 'test snip' in \S+:2"
+    expected_error = "Invalid multiword trigger: 'test snip' in \\S+:2"
 
 
 class ParseSnippets_MultiWord_UnmatchedContainer(_VimTest):
@@ -233,7 +244,32 @@ class ParseSnippets_MultiWord_UnmatchedContainer(_VimTest):
     }
     keys = "inv snip" + EX
     wanted = keys
-    expected_error = "Invalid multiword trigger: '!inv snip/' in \S+:2"
+    expected_error = "Invalid multiword trigger: '!inv snip/' in \\S+:2"
+
+
+class ParseSnippets_Global_Python_After(_VimTest):
+    files = {
+        "us/all.snippets": r"""
+        snippet ab
+        x `!p snip.rv = tex("bob")` y
+        endsnippet
+
+        context "always()"
+        snippet ac
+        x `!p snip.rv = tex("jon")` y
+        endsnippet
+
+        global !p
+        def tex(ins):
+            return "a " + ins + " b"
+
+        def always():
+            return True
+        endglobal
+        """
+    }
+    keys = "ab" + EX + "\nac" + EX
+    wanted = "x a bob b y\nx a jon b y"
 
 
 class ParseSnippets_Global_Python(_VimTest):
@@ -299,7 +335,7 @@ class ParseSnippets_PrintPythonStacktraceMultiline(_VimTest):
     }
     keys = "test" + EX
     wanted = keys
-    expected_error = " > \s+qwe"
+    expected_error = " > \\s+qwe"
 
 
 class ParseSnippets_PrintErroneousSnippet(_VimTest):

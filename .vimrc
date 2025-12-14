@@ -1,210 +1,90 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" This vimrc is based on the vimrc by Amix - http://amix.dk/
+" This vimrc is based on the vimrc by https://blog.csdn.net/Guet_Kite/
 " You can find the latest version on:
-"       http://blog.csdn.net/easwy
+"       https://github.com/Guet-Bantao/vim_config
 "
 " Maintainer:Bantao
-" Version: 4.0
-" Last Change: 2020/12/14 09:17:57
+" Version: 5.0
+" Last Change: 2025/11/24 09:17:57
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+call plug#begin('~/.vim/plugged')
+Plug 'mhinz/vim-startify'
+" 配色主题
+Plug 'tomasiser/vim-code-dark'
+" Plug 'liuchengxu/space-vim-theme'
+Plug 'vim-airline/vim-airline'
+" gutentags 基础插件
+Plug 'ludovicchabant/vim-gutentags'
+" gutentags_plus 增强 gtags 支持
+Plug 'skywind3000/gutentags_plus'
+if system('ctags --version 2>/dev/null') =~# 'Universal Ctags'
+    Plug 'liuchengxu/vista.vim', { 'on': ['Vista', 'Vista!!'] }
+    let g:use_universal_ctags = 1
+else
+    Plug 'preservim/tagbar'
+    let g:use_universal_ctags = 0
+endif
+" 依赖 apt install ranger
+Plug 'francoiscabrol/ranger.vim'
+if v:version > 704 || v:version == 704 && has("patch330") == 1
+    " 快速的模糊查找插件
+    Plug 'Yggdroot/LeaderF'
+    nmap <C-p> : LeaderfFile <cr>
+else
+    " 兼容性好的模糊查找插件
+    Plug 'kien/ctrlp.vim' "兼容性好的模糊查找插件
+    Plug 'FelikZ/ctrlp-py-matcher'
+endif
+" 缓存buf窗口管理
+Plug 'jlanzarotta/bufexplorer'
+" 窗口管理
+Plug 'vim-scripts/winmanager'
+" 快速代码注释
+Plug 'tpope/vim-commentary'
+" 彩色括号
+Plug 'luochen1990/rainbow'
+" 括号匹配增强
+Plug 'andymass/vim-matchup'
+" 代码对齐
+Plug 'godlygeek/tabular'
+" git修改通知
+Plug 'mhinz/vim-signify'
+"替换引擎，需搭配补全规则
+Plug 'SirVer/ultisnips'
+"补全片段规则
+Plug 'honza/vim-snippets'
+" YouCompleteMe
+" Plug 'ycm-core/YouCompleteMe'
+" 高亮尾部空格
+Plug 'bronson/vim-trailing-whitespace'
+" 实时代码格式化
+Plug 'skywind3000/vim-rt-format'
+" 超轻量级代码补全系统
+Plug 'skywind3000/vim-auto-popmenu'
+" Plug 'skywind3000/vim-preview'
+" git信息管理
+Plug 'rhysd/git-messenger.vim'
+call plug#end()
+
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" General
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+set nocompatible
 set encoding=utf-8
 set langmenu=zh_CN.UTF-8
 " language message zh_CN.UTF-8
 set fileencodings=ucs-bom,utf-8,gb18030,cp936,big5,euc-jp,euc-kr,latin1
 set fenc=utf-8      "编码文件
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" General
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"Get out of VI's compatible mode..
-set nocompatible
-
-" Platform
-function! MySys()
-   return "linux"
-endfunction
-
-" Chinese
-if MySys() == "windows"
-   "set encoding=utf-8
-   "set langmenu=zh_CN.UTF-8
-   "language message zh_CN.UTF-8
-   "set fileencodings=ucs-bom,utf-8,gb18030,cp936,big5,euc-jp,euc-kr,latin1
-endif
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-plugged
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-call plug#begin('~/.vim/plugged')
-if v:version > 704 || v:version == 704 && has("patch330") == 1
-Plug 'Yggdroot/LeaderF' "快速的模糊查找插件
-nmap <C-p> : LeaderfFile <cr>
-else
-Plug 'kien/ctrlp.vim' "兼容性好的模糊查找插件
-Plug 'FelikZ/ctrlp-py-matcher'
-endif
-if (has('job') || (has('nvim') && exists('*jobwait')))
-Plug 'ludovicchabant/vim-gutentags' "异步自动更新tag
-endif
-Plug 'mhinz/vim-startify' "优化显示界面
-Plug 'junegunn/vim-easy-align'
-Plug 'luochen1990/rainbow' "彩虹括号
-Plug 'tpope/vim-commentary' "快速注释
-Plug 'vim-scripts/global-6.6.4' "gtags引用跳转
-Plug 'SirVer/ultisnips' "替换引擎，需搭配补全规则
-Plug 'honza/vim-snippets' "补全片段规则
-Plug 'tomasiser/vim-code-dark'
-if v:version > 800
-Plug 'rhysd/git-messenger.vim' "git msg 插件
-else
-let g:loaded_git_messenger = 0
-endif
-Plug 'ervandew/supertab' "Tab 代码补全
-call plug#end()
-
-set clipboard=unnamed " 共享外部剪贴板
-set clipboard+=exclude:.* "
-set clipboard=autoselect,exclude:.* "vim剪切板会拖慢2s启动时间，不需要可关闭(放开注释即可),会导致剪切板不可用
-
-"Set mapleader
+" Set mapleader
 let mapleader="\<Space>"
 let g:mapleader = "\<Space>"
 
-" Switch to buffer according to file name
-function! SwitchToBuf(filename)
-    "let fullfn = substitute(a:filename, "^\\~/", $HOME . "/", "")
-    " find in current tab
-    let bufwinnr = bufwinnr(a:filename)
-    if bufwinnr != -1
-        exec bufwinnr . "wincmd w"
-        return
-    else
-        " find in each tab
-        tabfirst
-        let tab = 1
-        while tab <= tabpagenr("$")
-            let bufwinnr = bufwinnr(a:filename)
-            if bufwinnr != -1
-                exec "normal " . tab . "gt"
-                exec bufwinnr . "wincmd w"
-                return
-            endif
-            tabnext
-            let tab = tab + 1
-        endwhile
-        " not exist, new tab
-        exec "tabnew " . a:filename
-    endif
-endfunction
-
-"Fast edit vimrc
-if MySys() == 'linux'
-    "Fast reloading of the .vimrc
-    map <silent> <leader>ss :source ~/.vimrc<cr>
-    "Fast editing of .vimrc
-    map <silent> <leader>ee :call SwitchToBuf("~/.vimrc")<cr>
-    "When .vimrc is edited, reload it
-    autocmd! bufwritepost .vimrc source ~/.vimrc
-endif
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Colors and Fonts
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" colorscheme elflord
-colorscheme codedark
-set t_Co=256
-set cursorline
-syntax enable
-syntax on
-
-" hilight function name
-autocmd BufNewFile,BufRead * :syntax match cfunctions "\<[a-zA-Z_][a-zA-Z_0-9]*\>[^()]*)("me=e-2
-autocmd BufNewFile,BufRead * :syntax match cfunctions "\<[a-zA-Z_][a-zA-Z_0-9]*\>\s*("me=e-1
-hi cFunctions guifg=#7fd02e cterm=bold ctermfg=80 "函数蓝色80
-
-syn match cClass "\<[a-zA-Z_][a-zA-Z_0-9]*\>::"me=e-2
-hi cClass guifg=#7fd02e cterm=bold ctermfg=yellow
-
-hi Search term=standout ctermfg=0 ctermbg=3 "搜索黄色3
-hi Comment ctermfg=242 ctermbg=NONE cterm=NONE guifg=#75715e guibg=NONE gui=NONE "注释
-hi Conditional ctermfg=197 ctermbg=NONE cterm=NONE guifg=#f92672 guibg=NONE gui=NONE "条件
-" hi CursorLine ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE "光标行
-" hi ColorColumn ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE
-" hi LineNr ctermfg=102 ctermbg=237 cterm=NONE guifg=#90908a guibg=#3c3d37 gui=NONE "行号
-" " hi VertSplit ctermfg=241 ctermbg=241 cterm=NONE guifg=#64645e guibg=#64645e gui=NONE "分隔线
-" hi VertSplit ctermfg=08 ctermbg=233 cterm=NONE guifg=##444444 guibg=##444444 gui=NONE "分隔线
-" hi StatusLine ctermfg=231 ctermbg=241 cterm=bold guifg=#f8f8f2 guibg=#64645e gui=bold
-" hi StatusLineNC ctermfg=231 ctermbg=241 cterm=NONE guifg=#f8f8f2 guibg=#64645e gui=NONE
-
-if &diff
-  syntax off
-  " colorscheme desert
-endif
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Session options
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set sessionoptions-=curdir
-set sessionoptions+=sesdir
-
-function! <SID>BufcloseCloseIt()
-   let l:currentBufNum = bufnr("%")
-   let l:alternateBufNum = bufnr("#")
-
-   if buflisted(l:alternateBufNum)
-     buffer #
-   else
-     bnext
-   endif
-
-   if bufnr("%") == l:currentBufNum
-     new
-   endif
-
-   if buflisted(l:currentBufNum)
-     execute("bdelete! ".l:currentBufNum)
-   endif
-endfunction
-" Don't close window, when deleting a buffer
-command! Bclose call <SID>BufcloseCloseIt()
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Files and backups
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set nobackup	" no backup files
-set nowb	" only in case you don't want a backup file while editing
-"set noswapfile	" no swap files
 
 "Restore cursor to file position in previous editing session
 set viminfo='10,\"100,:20,n~/.viminfo
 au BufReadPost * if line("'\"") > 0|if line("'\"") <= line("$")|exe("norm '\"")|else|exe "norm $"|endif|endif
-
-au FileType html,python,vim,javascript setl shiftwidth=2
-"au FileType html,python,vim,javascript setl tabstop=2
-au FileType java setl shiftwidth=4
-"au FileType java setl tabstop=4
-au FileType txt setl lbr
-au FileType txt setl tw=78
-
-"Fast saving
-nmap <silent> <leader>ww :w<cr>
-nmap <silent> <leader>wf :w!<cr>
-
-"Fast quiting
-nmap <silent> <leader>wq :wq<cr>
-nmap <silent> <leader>qf :q!<cr>
-nmap <silent> <leader>qq :q<cr>
-nmap <silent> <leader>qa :qa<cr>
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Text options
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"Enable filetype plugin自动补全
-filetype plugin on
-filetype indent on
 
 "Set to auto read when a file is changed from the outside
 set autoread
@@ -215,196 +95,327 @@ autocmd BufReadPost *
       \exe "normal g'\"" |
       \ endif
 
-set noexpandtab
-set shiftwidth=8
-set tabstop=8
-set softtabstop=8
-"set listchars=tab:>-,trail:-
-highlight WhitespaceEOL ctermbg=red guibg=red
-match WhitespaceEOL /\s\+$/
+" Fast saving
+nmap <silent> <leader>ww :w<cr>
+nmap <silent> <leader>wf :w!<cr>
 
+" Fast quiting
+nmap <silent> <leader>wq :wq<cr>
+nmap <silent> <leader>qf :q!<cr>
+nmap <silent> <leader>qq :q<cr>
+nmap <silent> <leader>qa :qa<cr>
+
+" 插入模式 Backspace
+set backspace=eol,start,indent
+
+" Show line number
+set nu
+
+" 光标跨行移动
+set whichwrap+=<,>,h,l
+
+" 搜索忽略大小写，输入大写字母自动区分
+set ignorecase
+set smartcase
+" 增量搜索
+set incsearch
+" Highlight search things
+set hlsearch
 "Fast remove highlight search
 nmap <silent> <leader><cr> :noh<cr>
 
 """"""""""""""""""""""""""""""
-" Delete space and ^M
+" Indent
 """"""""""""""""""""""""""""""
-"Remove indenting on empty lines
-func! DeleteTrailingWS()
-  exe "normal mz"
-  %s/\s\+$//ge
-  nohl
-  exe "normal `z"
-endfunc
-" do not automaticlly remove trailing whitespace
-" autocmd BufWrite *.[ch] :call DeleteTrailingWS()
-" autocmd BufWrite *.cc :call DeleteTrailingWS()
-" autocmd BufWrite *.txt :call DeleteTrailingWS()
-nmap <silent> <leader>ds :call DeleteTrailingWS()<cr>:w<cr>
-nmap <silent> <leader>ds! :call DeleteTrailingWS()<cr>:w!<cr>
-"Remove the Windows ^M
-noremap <Leader>dm mmHmn:%s/<C-V><cr>//ge<cr>'nzt'm
+" Auto indent
+set autoindent
+" C-style indeting
+set cindent
+" Wrap lines
+set wrap
 
-""""""""""""""""""""""""""""""
-" Fast grep
-""""""""""""""""""""""""""""""
-function! s:GetVisualSelection()
-   let save_a = @a
-   silent normal! gv"ay
-   let v = @a
-   let @a = save_a
-   let var = escape(v, '\\/.$*')
-   return var
-endfunction
-nmap <silent> <leader>g :lv /<c-r>=expand("<cword>")<cr>/ %<cr>:lw<cr>
-vmap <silent> <leader>g :lv /<c-r>=<sid>GetVisualSelection()<cr>/ %<cr>:lw<cr>
+set expandtab          " 按 Tab 键时插入空格而不是 \t
+set shiftwidth=4       " >> << 缩进时移动 4 个空格
+set tabstop=4          " 文件中真实的 \t 显示宽度为 4
+set softtabstop=4      " 插入模式按 Tab 插入 4 个空格
+set list
+set listchars=tab:▸\ ,trail:·,extends:>,precedes:<,nbsp:+ " 显示不可见字符
+" autocmd BufWritePre *.c,*.cpp,*.py,*.vim :%s/\s\+$//e " 保存时自动删除尾部空格
 
-""""""""""""""""""""""""""""""
-" Folding
-""""""""""""""""""""""""""""""
-"Enable folding, I find it very useful
-"set fen
-"set fdl=0
-nmap <silent> <leader>zo zO
-vmap <silent> <leader>zo zO
+set nobackup	" no backup files
+set nowb	" only in case you don't want a backup file while editing
+set noswapfile	" no swap files
+"Set to auto read when a file is changed from the outside
+set autoread
+" 自动切换工作目录
+" 如果你用项目管理插件（如 vim-projectionist 或 LeaderF），可能会干扰根目录切换
+set autochdir
+
+" 命令行补全增强
+set wildmenu
+" 命令行高度
+set cmdheight=2
+
+nnoremap <Tab> :bn<CR>
+nnoremap <S-Tab> :bp<CR>
+
+set mouse+=a
+
+set magic
+set completeopt=menu,menuone,noselect
+
+" No sound on errors.
+set noerrorbells
+set novisualbell
+
+" nnoremap <F10> :set invnumber<CR>:Vista!!<CR>:set mouse=<CR>:set invlist<CR>
+nnoremap <F10> :set invnumber<CR>:silent! Vista!!<CR>:if &mouse=='' \| set mouse=a \| else \| set mouse= \| endif<CR>:set invlist<CR>
+
+
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Complete
+" startify setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" options
-set completeopt=menu
-set complete-=u
-set complete-=i
+let g:startify_custom_header = [
+            \ '+--------------------------------------------------------+',
+            \ '     _     _       _     _    __     ___                 |',
+            \ '    | |   (_) __ _| |__ | |_  \ \   / (_)_ __ ___        |',
+            \ '    | |   | |/ _` |  _ \| __|  \ \ / /| |  _ ` _ \       |',
+            \ '    | |___| | (_| | | | | |_    \ V / | | | | | | |      |',
+            \ '    |_____|_|\__, |_| |_|\__|    \_/  |_|_| |_| |_|      |',
+            \ '             |___/                                       |',
+            \ '                                                         |',
+            \ '            o                                            |',
+            \ '             o    ^____^                                 |',
+            \ '              o  （o o）\___________                     |',
+            \ '                 （___）\           ）\/\                |',
+            \ '                        ||________w |                    |',
+            \ '                        ||         ||                    |',
+            \ '+--------------------------------------------------------+',
+            \]
 
-" Enable syntax
-if has("autocmd") && exists("+omnifunc")
-  autocmd Filetype *
-        \if &omnifunc == "" |
-        \  setlocal omnifunc=syntaxcomplete#Complete |
-        \endif
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-airline setting
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" 启用状态栏
+set laststatus=2
+let g:airline_extensions = ['tabline']
+
+" airline 基础启用（默认自动启用）
+let g:airline_powerline_fonts = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#formatter = 'unique_tail'
+let g:airline#extensions#tabline#fnamemod = ':p:.' "相对路径
+let g:airline#extensions#tabline#fnamecollapse = 1 "折叠过长路径
+
+
+let g:airline_section_c = '%{fnamemodify(bufname(""), ":p:~")}' "文件绝对路径
+let g:airline_section_b = '' " git信息
+let g:airline_section_x = '' " tagbar, filetype, virtualenv 函数名
+let g:airline_section_error = '' "ycm error message
+let g:airline_section_warning = '' " ycm warning message
+
+set numberwidth=1
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Colors and Fonts
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+syntax enable
+
+colorscheme codedark
+set t_Co=256
+set t_ut=
+set cursorline
+" syntax on
+" set termguicolors
+
+" colorscheme space_vim_theme
+" set background=dark
+" set termguicolors
+" hi LineNr ctermbg=NONE guibg=NONE
+
+" hilight function name
+autocmd BufNewFile,BufRead * syntax match cFunction "\<[a-zA-Z_][a-zA-Z_0-9]*\>\ze\s*("
+" 类/结构名（C++ 的 XXX::）
+autocmd BufNewFile,BufRead * syntax match cClass "\<[a-zA-Z_][a-zA-Z_0-9]*\>\ze::"
+" -----------------------------
+" 高亮颜色设置
+" -----------------------------
+" 函数名：绿色偏蓝
+hi cFunction guifg=#7fd02e cterm=bold ctermfg=80
+" 类名：偏绿
+hi cClass guifg=#4EC9B0 ctermfg=37 cterm=bold
+" 条件关键字（if, else, for, while 等）
+hi Conditional guifg=#f92672 cterm=bold ctermfg=197
+hi Repeat guifg=#f92672 cterm=bold ctermfg=197
+" 注释：灰色
+hi Comment guifg=#75715e ctermfg=242 gui=NONE cterm=NONE
+" 搜索高亮：黄色背景
+hi Search term=standout guibg=#ffff00 ctermbg=3 ctermfg=0
+
+" hi CursorLine ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE "光标行
+" hi ColorColumn ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE
+" hi LineNr ctermfg=102 ctermbg=237 cterm=NONE guifg=#90908a guibg=#3c3d37 gui=NONE "行号
+" hi VertSplit ctermfg=241 ctermbg=241 cterm=NONE guifg=#64645e guibg=#64645e gui=NONE "分隔线
+" hi VertSplit ctermfg=08 ctermbg=233 cterm=NONE guifg=##444444 guibg=##444444 gui=NONE "分隔线
+" hi StatusLine ctermfg=231 ctermbg=241 cterm=bold guifg=#f8f8f2 guibg=#64645e gui=bold
+" hi StatusLineNC ctermfg=231 ctermbg=241 cterm=NONE guifg=#f8f8f2 guibg=#64645e gui=NONE
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" gutentags 基础配置
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:gutentags_enabled = 1
+let g:gutentags_ctags_executable = 'ctags'
+let g:gutentags_project_root = ['.git', '.hg', '.svn', '.root']
+let g:gutentags_update_on_write = 1
+" 指定一些项目根目录不生成 tags/gtags
+let g:gutentags_exclude_project_root = ['.git', 'node_modules', 'build', 'temp', 'output']
+" 忽略的目录和文件
+let g:gutentags_ctags_exclude = [
+    \ 'build', 'bin', 'obj', '.git', '.svn', 'node_modules', 'output', 'out']
+" 强制 <C-]> 使用 ctags，不使用 cscope
+nnoremap <C-]> g<C-]>
+nnoremap <C-LeftMouse> g<C-]>
+
+" gtags-cscope job failed 删除错误G๎TAGS重新生成
+let g:gutentags_force_gtags_update_when_fail = 1
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" gutentags_plus 配置
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" 同时开启 ctags 和 gtags 支持：
+let g:gutentags_modules = []
+if executable('ctags')
+	let g:gutentags_modules += ['ctags']
 endif
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" cscope setting
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-if has("cscope")
-  if MySys() == "linux"
-    set csprg=/usr/bin/cscope
-  else
-    set csprg=cscope
-  endif
-  set csto=1
-  set cst
-  set nocsverb
-  " add any database in current directory
-  if filereadable("cscope.out")
-      cs add cscope.out
-  endif
-  "cs add /home/bantao/kernel/linux-4.9/cscope.out /home/bantao/kernel/linux-4.9
-  set csverb
-endif
-
-"查找C语言符号，即查找函数名、宏、枚举值等出现的地方
-nmap <C-\>s :cs find s <C-R>=expand("<cword>")<CR><CR>
-nmap <C-\>g :cs find g <C-R>=expand("<cword>")<CR><CR>
-"查找调用本函数的函数
-nmap <C-\>c :cs find c <C-R>=expand("<cword>")<CR><CR>
-"查找指定的字符串
-nmap <C-\>t :cs find t <C-R>=expand("<cword>")<CR><CR>
-"查找egrep模式，相当于egrep功能，但查找速度快多了
-nmap  <C-\>e :cs find e <C-R>=expand("<cword>")<CR><CR>
-"查找本文件，类似vim的find功能
-nmap <C-\>f :cs find f <C-R>=expand("<cfile>")<CR><CR>
-"查找包含本文件的文件
-nmap <C-\>i :cs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
-"查找本函数调用的函数
-nmap <C-\>d :cs find d <C-R>=expand("<cword>")<CR><CR>
-
-nmap <C-LeftMouse> :tag <C-R>=expand("<cword>")<CR><CR>
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" ctag setting
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"set tags=/home/bantao/kernel/linux-4.9/tags;
-set tags=tags;
-map <C-F12> :!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<CR><CR>
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" gtag setting
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 if executable('gtags-cscope') && executable('gtags')
-    let gtags_file=findfile("GTAGS", ";")
-    if !empty(gtags_file)
-        set cscopetag " 使用 cscope 作为 tags 命令
-	set cscopeprg='gtags-cscope' " 使用 gtags-cscope 代替 cscope
-	let GtagsCscope_Auto_Load = 1
-	let CtagsCscope_Auto_Map = 1
-	let GtagsCscope_Quiet = 1
+	let g:gutentags_modules += ['gtags_cscope']
+endif
+
+" 如果你只想用 gtags，可以写成
+" let g:gutentags_modules = ['gtags_cscope']
+
+" 设置 gtags 扫描深度（可选）
+let g:gutentags_plus_gtags_exclude_dir = ['.git', 'node_modules', 'build']
+
+" 所生成的数据文件的名称
+" let g:gutentags_ctags_tagfile = '.tags'
+
+" 自动更新 gtags
+let g:gutentags_plus_gtags_auto_update = 1
+
+" change focus to quickfix window after search (optional).
+let g:gutentags_plus_switch = 1
+
+" 配置 ctags 的参数
+let g:gutentags_ctags_extra_args = ['--fields=+niazS']
+let g:gutentags_ctags_extra_args += ['--c++-kinds=+px']
+let g:gutentags_ctags_extra_args += ['--c-kinds=+px']
+
+if g:use_universal_ctags
+" 如果使用 universal ctags 需要增加下面，老的 Exuberant-ctags 不能加
+let g:gutentags_ctags_extra_args += ['--output-format=e-ctags']
+let g:gutentags_ctags_extra_args += ['--extras=+q']
+endif
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" tagbar显示tag函数
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+if !g:use_universal_ctags
+
+" 指向 universal-ctags（保证支持 C++11/14/17）
+let g:tagbar_ctags_bin = 'ctags'
+let g:tagbar_left = 1
+let g:tagbar_width = 25
+let g:tagbar_autofocus = 0
+" 自动打开 Tagbar 当打开 C/C++ 文件
+autocmd BufReadPost *c,*.cpp,*.h TagbarOpen
+
+" C++ 额外选项
+let g:tagbar_type_cpp = {
+    \ 'ctagsbin'  : 'ctags',
+    \ 'ctagsargs' : '--c++-kinds=+p --fields=+iaS --extra=+q',
+    \ 'sort'      : 0
+\ }
+
+" 打开/关闭 Tagbar 快捷键
+nnoremap <F7> :TagbarToggle<CR>
+
+set tags=./tags;
+
+endif
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Vista.vim 配置示例
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+if g:use_universal_ctags
+" 将 Vista 侧边栏放在左侧
+let g:vista_sidebar_position = 'vertical topleft'
+let g:vista_sidebar_width = 25
+
+" 当打开 c/c++/h/hpp 文件时自动打开 Vista
+autocmd BufReadPost,BufNewFile *.c,*.cpp,*.cc,*.h,*.hpp Vista
+
+" 打开后不自动聚焦侧边栏
+let g:vista_stay_on_open = 0
+
+" 默认使用 ctags 或 LSP
+let g:vista_default_executive = 'ctags'
+
+" 启用悬浮窗预览
+if v:version > 802
+  let g:vista_echo_cursor_strategy ='floating_win'
+endif
+
+" 关闭vista底部状态栏
+let g:vista_disable_statusline = 1
+
+function! NearestMethodOrFunction() abort
+  return get(b:, 'vista_nearest_method_or_function', '')
+endfunction
+
+" set statusline+=%{NearestMethodOrFunction()}
+
+" By default vista.vim never run if you don't call it explicitly.
+"
+" If you want to show the nearest function in your statusline automatically,
+" you can add the following line to your vimrc
+" autocmd VimEnter * call vista#RunForNearestMethodOrFunction()
+
+function! s:CloseVista()
+" 当窗口数量 <= 1 时关闭 Vista
+    if winnr('$') == 1
+        if bufwinnr('__vista__') != -1
+            execute 'q'
+        endif
     endif
+endfunction
+" 每次 bufenter 触发
+autocmd BufEnter * call s:CloseVista()
+
+nnoremap <F7> :Vista!!<CR>
+
 endif
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" bufexplorer setting
+" ranger文件管理
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:bufExplorerDefaultHelp=1       " Do not show default help.
-let g:bufExplorerShowRelativePath=1  " Show relative paths.
-let g:bufExplorerSortBy='mru'        " Sort by most recently used.
-let g:bufExplorerSplitRight=0        " Split left.
-let g:bufExplorerSplitVertical=1     " Split vertically.
-let g:bufExplorerSplitVertSize = 30  " Split width
-let g:bufExplorerUseCurrentWindow=0  " Open in new window.
-let g:bufExplorerMaxHeight=30        " Max height
-let g:bufExplorerDisableDefaultKeyMapping =1 " Do not disable default key mappings.
-autocmd BufWinEnter \[Buf\ List\] setl nonumber
-nnoremap <silent> <F9> :BufExplorer<CR>
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" taglist setting
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-if MySys() == "windows"
-    let Tlist_Ctags_Cmd = 'ctags'
-elseif MySys() == "linux"
-    let Tlist_Ctags_Cmd = '/usr/bin/ctags'
+if executable('ranger')
+    let g:ranger_map_keys = 0   " 不自动抢快捷键
+    nmap <silent> <F2> :Ranger<CR>
+else
+    let g:netrw_winsize = 45
+    nmap <silent> <leader>fe :Sexplore!<cr>
+    nmap <silent> <F2> :Sexplore!<cr>
 endif
-let Tlist_Show_One_File = 1
-let Tlist_Exit_OnlyWindow = 1
-"let Tlist_Use_Right_Window = 1
-let Tlist_Process_File_Always=1
-let Tlist_Auto_Open = 1
-let g:Tlist_WinWidth=28
-let g:Tlist_GainFocus_On_ToggleOpen = 0
-nmap <silent> <F7> :Tlist<cr>
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" winmanager setting
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"let g:winManagerWindowLayout='FileExplorer'
-let g:winManagerWidth = 23
-"let g:winManagerWindowLayout = "BufExplorer,FileExplorer|TagList"
-let g:winManagerWindowLayout = "BufExplorer|FileExplorer"
-let g:defaultExplorer = 1
-let g:persistentBehaviour=1  "winmanager的窗口是最后一个窗口时，退出VIM
-nmap <C-W><C-F> :FirstExplorerWindow<cr>
-nmap <C-W><C-B> :BottomExplorerWindow<cr>
-let g:AutoOpenWinManager = 0
-nmap <silent> <leader>wm :WMToggle<cr>
-autocmd BufWinEnter \[Buf\ List\] setl nonumber
-nmap <silent> <F8> :WMToggle<cr>
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" netrw setting
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:netrw_winsize = 45
-nmap <silent> <leader>fe :Sexplore!<cr>
-nmap <silent> <F2> :Sexplore!<cr>
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -423,32 +434,81 @@ let g:ctrlp_match_func = { 'match': 'pymatcher#PyMatch' }
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " leaderf setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:Lf_Gtags = "/usr/bin/gtags"
 let g:Lf_RootMarkers = ['.project', '.root', '.svn', '.git']
 let g:Lf_WorkingDirectoryMode = 'Ac'
 let g:Lf_WindowHeight = 0.30
 let g:Lf_ShowRelativePath = 1 " Whether to show the relative path
 let g:Lf_StlColorscheme = 'powerline'
-" let g:Lf_PreviewResult = {'Function':0, 'BufTag':0}
 let g:Lf_ReverseOrder = 1
 
+" 检查 'rg' (ripgrep) 命令是否存在
+if executable('rg')
+    nnoremap <Leader>g :Leaderf rg <C-R><C-W>
+endif
+
+let g:Lf_PreviewInPopup = 1
+" let g:Lf_PreviewResult = {'Function':0, 'BufTag':0}
+
+" if use https://github.com/ludovicchabant/vim-gutentags to generate gtags:
+let g:Lf_GtagsAutoGenerate = 0
+let g:Lf_GtagsGutentags = 1
+
+let g:Lf_RgConfig = [
+        \ '--type-add "web:*.{html,css,js}*"',
+        \ "--glob=!git/*",
+        \ "--glob=!tags",
+        \ "--glob=!*.temp",
+        \ "--glob=!*.tmp",
+        \ "--glob=!*.o"
+        \ ]
+
+" 当在 quickfix 窗口里按回车跳转时自动关闭窗口
+autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>
+
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" airline setting
+" ctrlp setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" let g:airline#extensions#branch#enabled = 1
-let g:airline#extensions#tabline#enabled = 1
-"Always hide the statusline
-set laststatus=2
-let g:bufferline_show_bufnr = 1
-let g:airline#extensions#tabline#fnamemod = ':p:t' " 只显示文件名，不显示路径内容
+let g:ctrlp_max_depth = 100000
+let g:ctrlp_max_files = 100000
+" let g:ctrlp_root_markers = {'.root'}"如果默认文件标记（.git .hg .svn .bzr
+" _darcs）都不在项目里，你可以用g:ctrlp_root_markers添加进去
+set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.o,*ko     " MacOSX/Linux
+let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
+" let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
+let g:ctrlp_match_func = { 'match': 'pymatcher#PyMatch' }
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" bufexplorer setting
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:bufExplorerDefaultHelp=1       " Do not show default help.
+let g:bufExplorerShowRelativePath=1  " Show relative paths.
+let g:bufExplorerSortBy='mru'        " Sort by most recently used.
+let g:bufExplorerSplitRight=0        " Split left.
+let g:bufExplorerSplitVertical=1     " Split vertically.
+let g:bufExplorerSplitVertSize = 30  " Split width
+let g:bufExplorerUseCurrentWindow=0  " Open in new window.
+let g:bufExplorerMaxHeight=30        " Max height
+let g:bufExplorerDisableDefaultKeyMapping =1 " Do not disable default key mappings.
+autocmd BufWinEnter \[Buf\ List\] setl nonumber
+nnoremap <silent> <F9> :BufExplorer<CR>
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" gitmessenger setting
+" winmanager setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" let g:git_messenger_close_on_cursor_moved = "true" "窗口自动关闭
-let g:git_messenger_include_diff = "current" "none:简略 current:当前差异 all:全部差异
-let g:git_messenger_max_popup_height = 30 "窗口最大行数
+let g:winManagerWidth = 23
+" let g:winManagerWindowLayout = "BufExplorer,FileExplorer|TagList"
+let g:winManagerWindowLayout = "FileExplorer|TagList"
+let g:defaultExplorer = 1
+let g:persistentBehaviour=1  "winmanager的窗口是最后一个窗口时，退出VIM
+nmap <C-W><C-F> :FirstExplorerWindow<cr>
+nmap <C-W><C-B> :BottomExplorerWindow<cr>
+let g:AutoOpenWinManager = 0
+nmap <silent> <leader>wm :WMToggle<cr>
+autocmd BufWinEnter \[Buf\ List\] setl nonumber
+nmap <silent> <F8> :WMToggle<cr>
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -480,148 +540,62 @@ let g:rainbow_conf = {
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" startify setting
+" vim-matchup setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:startify_custom_header = [
-           \ '+--------------------------------------------------------+',
-	   \ '   __      ___              _  _______     _________     |',
-           \ '   \ \    / (_)            | | | |____ \  | |_______|    |',
-           \ '    \ \  / / _ _ __ ___    | | | |    | \ | |_______     |',
-           \ '     \ \/ / | | `_ ` _ \   | | | |    | | | |_______|    |',
-           \ '      \  /  | | | | | | |  | | | |____| | | |_______     |',
-           \ '       \/   |_|_| |_| |_|  |_| |_|_____/  |_|_______|    |',
-           \ '                                                         |',
-           \ '            o                                            |',
-           \ '             o    ^____^                                 |',
-           \ '              o  （o o）\___________                     |',
-           \ '                 （___）\           ）\/\                |',
-           \ '                        ||________w |                    |',
-           \ '                        ||         ||                    |',
-           \ '+--------------------------------------------------------+',
-           \]
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" ultisnips setting
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:UltiSnipsExpandTrigger = "<tab>" "用<tab>展开片段代码
-let g:UltiSnipsListSnippets = "<c-tab>"
-let g:UltiSnipsJumpForwardTrigger = "<tab>" "用<tab>跳到下一个位置
-let g:UltiSnipsJumpBackwardTrigger = "<s-tab>" "用shift+<tab>跳到上一个位置
+let g:matchup_matchparen_offscreen = {'method': 'popup'}
+let g:matchup_matchparen_deferred = 1
+let g:matchup_motion_override = 1
+let g:matchup_text_obj_enabled = 1
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" supertab setting
+" tabular setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" let g:loaded_supertab = 0 "放开注释，Tab补全失效
-let g:SuperTabDefaultCompletionType = "<c-n>" "候选词从上到下
 
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" LaTeX Suite things
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set grepprg=grep\ -nH\ $*
-let g:Tex_DefaultTargetFormat="pdf"
-let g:Tex_ViewRule_pdf='xpdf'
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" VIM userinterface
+" vim-signify setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"Set 7 lines to the curors - when moving vertical..
-"set so=7
+let g:signify_sign_add = '+'
+let g:signify_sign_delete = '-'
+let g:signify_sign_change = '~'
 
-"Have the mouse enabled all the time:
-set mouse+=v
-set mouse+=a
-
-set autochdir
-
-"Sets how many lines of history VIM har to remember
-set history=400
-
-"Turn on WiLd menu
-set wildmenu
-
-"The commandbar is 2 high
-set cmdheight=2
-
-"Show line number
-set nu
-
-"Show the colorcolumn
-" set cc=80	" vim中对80字符的限制提示
-
-"Change buffer - without saving
-"set hid
-
-"Set backspace
-set backspace=eol,start,indent
-
-"Bbackspace and cursor keys wrap to
-set whichwrap+=<,>
-
-"Ignore case when searching不区分大小写
-set ignorecase
-
-"Include search
-set incsearch
-
-"Highlight search things
-set hlsearch
-
-"Set magic on
-set magic
-
-"No sound on errors.
-set noerrorbells
-set novisualbell
-set t_vb=
-
-"show matching bracets
-"set showmatch
-
-set smarttab
-"set lbr
-"set tw=78
-
-""""""""""""""""""""""""""""""
-" Indent
-""""""""""""""""""""""""""""""
-"Auto indent
-set ai
-
-"Smart indet
-set si
-
-"C-style indeting
-set cindent
-
-"Wrap lines
-set wrap
+" vim-signify 左侧标记颜色
+highlight SignifySignAdd    ctermfg=2  guifg=#00ff00
+highlight SignifySignChange ctermfg=3  guifg=#ffff00
+highlight SignifySignDelete ctermfg=1  guifg=#ff0000
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" MISC
+" vim-rt-format setting
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Fast diff
-cmap @vd vertical diffsplit
-set diffopt+=vertical
+" 默认在 INSERT 模式下按 ENTER 格式化当前代码行，将下面设置
+" 成 1 的话，可以用 CTRL+ENTER 来格式化，ENTER 将保留原来的功能
+let g:rtf_ctrl_enter = 0
 
-autocmd FileType c,cpp  map <buffer> <leader><space> :make<cr>
-"Super paste
-inoremap <C-v> <esc>:set paste<cr>mui<C-R>+<esc>mv'uV'v=:set nopaste<cr>
-"Super select all
-nmap <C-a> ggVGY
+" 离开 INSERT 模式的时候再格式化一次
+let g:rtf_on_insert_leave = 1
 
-"Fast Ex command
-nnoremap ; :
+let g:rtformat_auto = 1
+" 当打开 c/c++/h/hpp 文件时自动打开 RTF
+" autocmd BufReadPost,BufNewFile *.c,*.cpp,*.cc,*.h,*.hpp RTFormatEnable
 
-"Smart way to move btw. windows
-nmap <C-j> <C-W>j
-nmap <C-k> <C-W>k
-nmap <C-h> <C-W>h
-nmap <C-l> <C-W>l
-nmap <TAB> :bn<cr>
 
-autocmd BufEnter * :syntax sync fromstart
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-auto-popmenu setting
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" cr与rt-format冲突
+let g:apc_cr_confirm = 1
+" 设定需要生效的文件类型，如果是 "*" 的话，代表所有类型
+let g:apc_enable_ft = {'text':1, 'markdown':1, 'php':1, 'c':1, 'cpp':1, 'h':1}
+let g:apc_min_length = 3
+let g:apc_enable_tab = get(g:, 'apc_enable_tab', 0)   " not remap tab
 
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" git-messenger.vim setting
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:git_messenger_floating_win_border = 'single'
+" none:简略 current:当前差异 all:全部差异
+" let g:git_messenger_include_diff = "current"

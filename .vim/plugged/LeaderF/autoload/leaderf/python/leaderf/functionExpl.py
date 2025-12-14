@@ -104,7 +104,8 @@ class FunctionExplorer(Explorer):
                 yield itertools.chain(func_list, itertools.chain.from_iterable(exe_taglist))
 
     def _getFunctionResult(self, buffer):
-        if not buffer.name or lfEval("bufloaded(%d)" % buffer.number) == '0':
+        if (not buffer.name or lfEval("bufloaded(%d)" % buffer.number) == '0'
+            or lfEval("&bt") != ''):
             return []
         changedtick = int(lfEval("getbufvar(%d, 'changedtick')" % buffer.number))
         # there is no change since last call
@@ -127,7 +128,7 @@ class FunctionExplorer(Explorer):
                 tmp_file = tempfile.NamedTemporaryFile
 
             with tmp_file(mode='w+', suffix='_'+os.path.basename(buffer.name), delete=False) as f:
-                for line in buffer[:]:
+                for line in buffer:
                     f.write(line + '\n')
                 file_name = f.name
             # {tagname}<Tab>{tagfile}<Tab>{tagaddress};"<Tab>{kind}
@@ -186,7 +187,7 @@ class FunctionExplorer(Explorer):
         return 'Function'
 
     def getStlCurDir(self):
-        return escQuote(lfEncode(os.getcwd()))
+        return escQuote(lfEncode(lfGetCwd()))
 
     def removeCache(self, buf_number):
         if buf_number in self._func_list:
@@ -207,7 +208,6 @@ class FunctionExplorer(Explorer):
 class FunctionExplManager(Manager):
     def __init__(self):
         super(FunctionExplManager, self).__init__()
-        self._orig_line = ''
 
     def _getExplClass(self):
         return FunctionExplorer
@@ -221,14 +221,17 @@ class FunctionExplManager(Manager):
         line = args[0]
         # {kind} {code} {file} {line}
         line = line.rsplit("\t", 1)[1][1:-1]    # file:line buf_number
-        line_nr, buf_number = line.rsplit(":", 1)[1].split()
+        line_num, buf_number = line.rsplit(":", 1)[1].split()
         if kwargs.get("mode", '') == 't':
             buf_name = lfEval("bufname(%s)" % buf_number)
-            lfCmd("tab drop %s | %s" % (escSpecial(buf_name), line_nr))
+            lfDrop('tab', buf_name, line_num)
         else:
-            lfCmd("hide buffer +%s %s" % (line_nr, buf_number))
+            lfCmd("hide buffer +%s %s" % (line_num, buf_number))
         lfCmd("norm! ^zv")
         lfCmd("norm! zz")
+
+        if "preview" not in kwargs:
+            lfCmd("setlocal cursorline! | redraw | sleep 150m | setlocal cursorline!")
 
         if vim.current.window not in self._cursorline_dict:
             self._cursorline_dict[vim.current.window] = vim.current.window.options["cursorline"]
@@ -286,42 +289,42 @@ class FunctionExplManager(Manager):
         lfCmd("autocmd VimLeavePre * call leaderf#Function#cleanup()")
         lfCmd("augroup END")
         if self._getInstance().getWinPos() == 'popup':
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcKind'', ''^\w'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcKind'', ''^\w'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcReturnType'', ''^\w\t\zs.\{-}\ze\s*[~]\=\w\+\W\{-}[(\[]'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcReturnType'', ''^\w\t\zs.\{-}\ze\s*[~]\=\(\w\|[#:]\)\+\W\{-}[(\[]'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcScope'', ''\w*\(<[^>]*>\)\=::'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcScope'', ''\w*\(<[^>]*>\)\=::'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcName'', ''^\w\t.\{-}\s*\zs[~]\=\w\+\W\{-}\ze[(\[]'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcName'', ''^\w\t.\{-}\s*\zs[~]\=\(\w\|[#:]\)\+\W\{-}\ze[(\[]'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcDirname'', ''\t\zs\[.*:\d\+ \d\+]$'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcDirname'', ''\t\zs\[.*:\d\+ \d\+]$'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
-            lfCmd("""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcLineNum'', '':\zs\d\+\ze \d\+]$'')')"""
+            lfCmd(r"""call win_execute(%d, 'let matchid = matchadd(''Lf_hl_funcLineNum'', '':\zs\d\+\ze \d\+]$'')')"""
                     % self._getInstance().getPopupWinId())
             id = int(lfEval("matchid"))
             self._match_ids.append(id)
         else:
-            id = int(lfEval('''matchadd('Lf_hl_funcKind', '^\w')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_funcKind', '^\w')'''))
             self._match_ids.append(id)
-            id = int(lfEval('''matchadd('Lf_hl_funcReturnType', '^\w\t\zs.\{-}\ze\s*[~]\=\w\+\W\{-}[(\[]')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_funcReturnType', '^\w\t\zs.\{-}\ze\s*[~]\=\(\w\|[#:]\)\+\W\{-}[(\[]')'''))
             self._match_ids.append(id)
-            id = int(lfEval('''matchadd('Lf_hl_funcScope', '\w*\(<[^>]*>\)\=::')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_funcScope', '\w*\(<[^>]*>\)\=::')'''))
             self._match_ids.append(id)
-            id = int(lfEval('''matchadd('Lf_hl_funcName', '^\w\t.\{-}\s*\zs[~]\=\w\+\W\{-}\ze[(\[]')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_funcName', '^\w\t.\{-}\s*\zs[~]\=\(\w\|[#:]\)\+\W\{-}\ze[(\[]')'''))
             self._match_ids.append(id)
-            id = int(lfEval('''matchadd('Lf_hl_funcDirname', '\t\zs\[.*:\d\+ \d\+]$')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_funcDirname', '\t\zs\[.*:\d\+ \d\+]$')'''))
             self._match_ids.append(id)
-            id = int(lfEval('''matchadd('Lf_hl_funcLineNum', ':\zs\d\+\ze \d\+]$')'''))
+            id = int(lfEval(r'''matchadd('Lf_hl_funcLineNum', ':\zs\d\+\ze \d\+]$')'''))
             self._match_ids.append(id)
 
     def _beforeExit(self):
@@ -340,29 +343,6 @@ class FunctionExplManager(Manager):
     def removeCache(self, buf_number):
         self._getExplorer().removeCache(buf_number)
 
-    def _previewResult(self, preview):
-        self._closePreviewPopup()
-
-        if not self._needPreview(preview):
-            return
-
-        line = self._getInstance().currentLine
-        if self._preview_in_popup:
-            self._previewInPopup(line)
-            return
-
-        orig_pos = self._getInstance().getOriginalPos()
-        cur_pos = (vim.current.tabpage, vim.current.window, vim.current.buffer)
-
-        saved_eventignore = vim.options['eventignore']
-        vim.options['eventignore'] = 'BufLeave,WinEnter,BufEnter'
-        try:
-            vim.current.tabpage, vim.current.window, vim.current.buffer = orig_pos
-            self._acceptSelection(line)
-        finally:
-            vim.current.tabpage, vim.current.window, vim.current.buffer = cur_pos
-            vim.options['eventignore'] = saved_eventignore
-
     def _bangEnter(self):
         super(FunctionExplManager, self)._bangEnter()
         if "--all" in self._arguments and not self._is_content_list:
@@ -376,21 +356,27 @@ class FunctionExplManager(Manager):
             self._relocateCursor()
 
     def _bangReadFinished(self):
+        super(FunctionExplManager, self)._bangReadFinished()
         self._relocateCursor()
 
     def _relocateCursor(self):
+        remember_last_status = "--recall" in self._arguments \
+                or lfEval("g:Lf_RememberLastSearch") == '1' and self._cli.pattern
+        if remember_last_status:
+            return
+
         inst = self._getInstance()
         if inst.empty():
             return
-        orig_buf_nr = inst.getOriginalPos()[2].number
+        orig_buf_num = inst.getOriginalPos()[2].number
         orig_line = inst.getOriginalCursor()[0]
         tags = []
         for index, line in enumerate(inst.buffer, 1):
             line = line.rsplit("\t", 1)[1][1:-1]
-            line_nr, buf_number = line.rsplit(":", 1)[1].split()
-            line_nr, buf_number = int(line_nr), int(buf_number)
-            if orig_buf_nr == buf_number:
-                tags.append((index, buf_number, line_nr))
+            line_num, buf_number = line.rsplit(":", 1)[1].split()
+            line_num, buf_number = int(line_num), int(buf_number)
+            if orig_buf_num == buf_number:
+                tags.append((index, buf_number, line_num))
 
         if self._getInstance().isReverseOrder():
             tags = tags[::-1]
@@ -413,20 +399,26 @@ class FunctionExplManager(Manager):
                 else:
                     lfCmd("call leaderf#ResetPopupOptions(%d, 'filter', function('leaderf#NormalModeFilter', [%d]))"
                             % (self._getInstance().getPopupWinId(), id(self)))
+                self._cli._buildPopupPrompt()
             else:
                 lfCmd(str(index))
+                if self._getInstance().getWinPos() == 'floatwin':
+                    self._cli._buildPopupPrompt()
                 lfCmd("norm! zz")
 
+            self._previewResult(False)
+
     def _previewInPopup(self, *args, **kwargs):
-        if len(args) == 0:
+        if len(args) == 0 or args[0] == '':
             return
 
         line = args[0]
         # {kind} {code} {file} {line}
         line = line.rsplit("\t", 1)[1][1:-1]    # file:line buf_number
-        line_nr, buf_number = line.rsplit(":", 1)[1].split()
+        line_num, buf_number = line.rsplit(":", 1)[1].split()
+        buf_number = int(buf_number)
 
-        self._createPopupPreview("", buf_number, line_nr)
+        self._createPopupPreview("", buf_number, line_num)
 
 
 #*****************************************************

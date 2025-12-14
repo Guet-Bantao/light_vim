@@ -19,7 +19,7 @@ count  total (s)   self (s)  function
     3              0.730215  pymatcher#PyMatch()
 ```
 
-To achive such results try to do **long** (5-10+ sym) text queries on a large amount of files (1kk+).
+To achieve such results try to do **long** (5-10+ sym) text queries on a large amount of files (1kk+).
 
 To install this plugin you **need** Vim compiled with `+python` flag:
 ```
@@ -55,5 +55,3 @@ NeoBundle 'FelikZ/ctrlp-py-matcher'
     let g:ctrlp_match_func = { 'match': 'pymatcher#PyMatch' }
 
 Full documentation is available [here](https://github.com/FelikZ/ctrlp-py-matcher/blob/master/doc/pymatcher.txt)
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/c38f2a3d6d6ba9a3e67be921ee2f68f0 "githalytics.com")](http://githalytics.com/FelikZ/ctrlp-py-matcher)

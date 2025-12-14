@@ -49,7 +49,7 @@ let g:rainbow_active = 1 "set to 0 if you want to enable it later via :RainbowTo
 	```sh
 	git clone https://github.com/luochen1990/rainbow.git
 	cd rainbow
-	mkdir -p ~/.vim/plugin
+	mkdir -p ~/.vim/plugin ~/.vim/autoload
 	cp plugin/* ~/.vim/plugin
 	cp autoload/* ~/.vim/autoload
 	```
@@ -98,6 +98,7 @@ let g:rainbow_conf = {
 \			'parentheses': ['start=/{/ end=/}/ fold contains=@colorableGroup'], "[vim css color](https://github.com/ap/vim-css-color) compatibility
 \		},
 \		'css': 0, "disable this plugin for css files
+\		'nerdtree': 0, "rainbow is conflicting with NERDTree, creating extra parentheses
 \	}
 \}
 ```
@@ -172,7 +173,7 @@ Troubleshooting
 
 The following keymappings will help you to check the syntax name and definitions under the cursor, add them to your vimrc and restart vim:
 
-```
+```vim
 nnoremap <f1> :echo synIDattr(synID(line('.'), col('.'), 0), 'name')<cr>
 nnoremap <f2> :echo ("hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<'
 \ . synIDattr(synID(line("."),col("."),0),"name") . "> lo<"
