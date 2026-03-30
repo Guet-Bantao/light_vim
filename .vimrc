@@ -4,7 +4,7 @@
 "       https://github.com/Guet-Bantao/vim_config
 "
 " Maintainer:Bantao
-" Version: 5.0
+" Version: 5.1
 " Last Change: 2025/11/24 09:17:57
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 call plug#begin('~/.vim/plugged')
@@ -29,7 +29,7 @@ Plug 'francoiscabrol/ranger.vim'
 if v:version > 704 || v:version == 704 && has("patch330") == 1
     " 快速的模糊查找插件
     Plug 'Yggdroot/LeaderF'
-    nmap <C-p> : LeaderfFile <cr>
+    nmap <C-p> :LeaderfFile <cr>
 else
     " 兼容性好的模糊查找插件
     Plug 'kien/ctrlp.vim' "兼容性好的模糊查找插件
@@ -222,15 +222,18 @@ set numberwidth=1
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Colors and Fonts
+" Colors and Fonts（SSH：按 256 色终端调，不依赖真彩色与斜体）
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 syntax enable
+
+let g:codedark_italics = 0
+let g:codedark_modern = 0
 
 colorscheme codedark
 set t_Co=256
 set t_ut=
 set cursorline
-" syntax on
+" SSH 上勿轻易开；MobaXterm 若强行开易导致颜色发飘。本机真彩色终端再考虑。
 " set termguicolors
 
 " colorscheme space_vim_theme
@@ -250,19 +253,21 @@ augroup custom_funcname_hl
   autocmd Syntax * call s:ApplyCustomFuncSyntax()
 augroup END
 " -----------------------------
-" 高亮颜色设置
+" 终端可读性：高亮颜色设置
 " -----------------------------
-" 函数名：绿色偏蓝
-hi cFunction guifg=#7fd02e cterm=bold ctermfg=80
+" 函数名：亮青蓝 + 粗体提高对比
+hi cFunction guifg=#7FDFFF guibg=NONE gui=bold ctermfg=123 ctermbg=NONE cterm=bold
 " 类名：偏绿
-hi cClass guifg=#4EC9B0 ctermfg=37 cterm=bold
-" 条件关键字（if, else, for, while 等）
-hi Conditional guifg=#f92672 cterm=bold ctermfg=197
-hi Repeat guifg=#f92672 cterm=bold ctermfg=197
+hi cClass guifg=#A8E1C5 guibg=NONE gui=bold ctermfg=115 ctermbg=NONE cterm=bold
 " 注释：灰色
 hi Comment guifg=#75715e ctermfg=242 gui=NONE cterm=NONE
-" 搜索高亮：黄色背景
+" 条件关键字（if, else, for, while 等）
+hi Conditional guifg=#FF3333 guibg=NONE gui=bold ctermfg=196 ctermbg=NONE cterm=bold
+hi Repeat guifg=#FF3333 guibg=NONE gui=bold ctermfg=196 ctermbg=NONE cterm=bold
+hi Label guifg=#FF3333 guibg=NONE gui=bold ctermfg=196 ctermbg=NONE cterm=bold
 hi Search term=standout guibg=#ffff00 ctermbg=3 ctermfg=0
+" 括号配对：codedark 默认底偏灰、不明显；改为亮底 + 白字 + 粗体（256 色用 31 蓝底）
+hi MatchParen guifg=#FFFFFF guibg=#0E639C gui=bold ctermfg=231 ctermbg=31 cterm=bold
 
 " hi CursorLine ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE "光标行
 " hi ColorColumn ctermfg=NONE ctermbg=237 cterm=NONE guifg=NONE guibg=#3c3d37 gui=NONE
