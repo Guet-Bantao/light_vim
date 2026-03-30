@@ -25,11 +25,11 @@ git clone https://github.com/Guet-Bantao/light_vim.git
 sudo apt-get install ranger
 sudo apt install global
 sudo /usr/bin/python3.6 -m pip install autopep8
-sudo mv rg /usr/local/bin/
-写~/.bashrc
-export PATH=~/ctags/tmp/bin:$PATH
 
 note: 无法联网不install可以直接使用库里面离线的rg和ctags
+sudo tar -xzf vim_tools.tar.gz -C /usr/local/bin/
+写~/.bashrc
+export PATH=/usr/local/bin/ctags/tmp/bin:$PATH
 ```
 
 # 📦特性
