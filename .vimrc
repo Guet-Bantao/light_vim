@@ -238,10 +238,17 @@ set cursorline
 " set termguicolors
 " hi LineNr ctermbg=NONE guibg=NONE
 
-" hilight function name
-autocmd BufNewFile,BufRead * syntax match cFunction "\<[a-zA-Z_][a-zA-Z_0-9]*\>\ze\s*("
-" 类/结构名（C++ 的 XXX::）
-autocmd BufNewFile,BufRead * syntax match cClass "\<[a-zA-Z_][a-zA-Z_0-9]*\>\ze::"
+" 函数名 / 类名高亮：必须在默认 syntax 加载之后再挂，否则会被覆盖。
+" Ranger.vim 在选文件后会执行 filetype detect，若在 BufRead 阶段挂接会被清掉。
+function! s:ApplyCustomFuncSyntax() abort
+  silent! syntax clear cFunction cClass
+  silent! syntax match cFunction "\<[a-zA-Z_][a-zA-Z_0-9]*\>\ze\s*("
+  silent! syntax match cClass "\<[a-zA-Z_][a-zA-Z_0-9]*\>\ze::"
+endfunction
+augroup custom_funcname_hl
+  autocmd!
+  autocmd Syntax * call s:ApplyCustomFuncSyntax()
+augroup END
 " -----------------------------
 " 高亮颜色设置
 " -----------------------------
@@ -441,6 +448,39 @@ let g:Lf_WindowHeight = 0.30
 let g:Lf_ShowRelativePath = 1 " Whether to show the relative path
 let g:Lf_StlColorscheme = 'powerline'
 let g:Lf_ReverseOrder = 1
+
+" Vista 与 LeaderF：BufReadPost/filetype 时序问题会导致侧边栏仍显示旧文件。
+" 配合 Plug 的 on:Vista 延迟加载：仅当已存在 __vista__ 窗格时才 plug#load 并同步（平时零开销）。
+function! s:VistaSyncIfSidebar() abort
+  if bufwinnr('__vista__') == -1
+    return
+  endif
+  if bufname('%') ==# '__vista__'
+    return
+  endif
+  if !exists('g:loaded_vista') && exists('*plug#load')
+    silent! call plug#load('vista.vim')
+  endif
+  if !exists('g:loaded_vista')
+    return
+  endif
+  if vista#ShouldSkip()
+    return
+  endif
+  let [b, w, f, p] = [bufnr('%'), winnr(), expand('%'), expand('%:p')]
+  call vista#source#Update(b, w, f, p)
+  call vista#executive#ctags#AutoUpdate(p)
+endfunction
+
+augroup vista_sidebar_sync
+  autocmd!
+  autocmd BufWinEnter *.c,*.cpp,*.cc,*.h,*.hpp call s:VistaSyncIfSidebar()
+  if has('timers')
+    autocmd FileType c,cpp,objc,objcpp,cuda,opencl call timer_start(10, { -> s:VistaSyncIfSidebar() })
+  else
+    autocmd FileType c,cpp,objc,objcpp,cuda,opencl call s:VistaSyncIfSidebar()
+  endif
+augroup END
 
 " 检查 'rg' (ripgrep) 命令是否存在
 if executable('rg')
