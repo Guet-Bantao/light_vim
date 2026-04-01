@@ -29,7 +29,7 @@ sudo /usr/bin/python3.6 -m pip install autopep8
 note: 无法联网不install可以直接使用库里面离线的rg和ctags
 sudo tar -xzf vim_tools.tar.gz -C /usr/local/bin/
 写~/.bashrc
-export PATH=/usr/local/bin/ctags/tmp/bin:$PATH
+export PATH=/usr/local/bin/ctags/bin:$PATH
 ```
 
 # 📦特性
